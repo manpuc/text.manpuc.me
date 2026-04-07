@@ -1,0 +1,13 @@
+
+---
+import Layout from '../layouts/Layout.astro';
+import { Shell } from '../components/Shell';
+import { getLangFromUrl } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const title = lang === 'ja' ? 'TextFlow - テキスト変換ツール' : 'TextFlow - Text Conversion Tools';
+---
+
+<Layout title={title} lang={lang}>
+	<Shell initialLang={lang} client:load />
+</Layout>
