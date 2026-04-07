@@ -1,17 +1,19 @@
 
 export type ToolId = 
-  | 'upper' | 'lower' | 'title' | 'sentence'
-  | 'full-width' | 'half-width' | 'hiragana' | 'katakana' | 'romaji' | 'half-katakana'
+  | 'upper' | 'lower' | 'title' | 'sentence' | 'alternating' | 'reverse' | 'initials'
+  | 'full-width' | 'half-width' | 'hiragana' | 'katakana' | 'romaji' | 'half-katakana' 
   | 'from-half-katakana' | 'half-katakana-to-hiragana'
-  | 'slug' | 'camel' | 'snake' | 'pascal'
-  | 'trim' | 'whitespace' | 'line-breaks' | 'duplicate' | 'sort'
-  | 'base64-encode' | 'base64-decode'
-  | 'url-encode' | 'url-decode'
-  | 'html-encode' | 'html-decode'
-  | 'json-format' | 'json-minify'
-  | 'binary-encode' | 'binary-decode' | 'num-to-bin' | 'bin-to-num'
-  | 'html-format' | 'html-minify' | 'code-format' | 'code-minify'
-  | 'strike' | 'slanted' | 'remove-nl' | 'remove-ws';
+  | 'slug' | 'camel' | 'snake' | 'pascal' | 'kebab'
+  | 'upper-camel' | 'lower-camel' | 'upper-snake' | 'lower-snake' | 'upper-kebab' | 'lower-kebab'
+  | 'trim' | 'whitespace' | 'line-breaks' | 'duplicate' | 'sort' | 'remove-nl' | 'remove-ws'
+  | 'base64-encode' | 'base64-decode' | 'url-encode' | 'url-decode' | 'html-encode' | 'html-decode'
+  | 'hex-encode' | 'hex-decode' | 'unicode-escape' | 'morse' | 'braille' | 'hieroglyph'
+  | 'json-format' | 'json-minify' | 'html-format' | 'html-minify' | 'code-format' | 'code-minify'
+  | 'binary-encode' | 'binary-decode'
+  | 'num-to-bin' | 'num-to-hex' | 'num-to-oct' | 'bin-to-num' | 'hex-to-num' | 'num-to-kanji' | 'num-to-frac'
+  | 'unix-time' | 'from-unix' | 'nfc' | 'nfd'
+  | 'caesar' | 'rot13' | 'atbash' | 'md5' | 'sha256'
+  | 'strike' | 'slanted';
 
 export interface ToolDef {
   id: ToolId;
@@ -19,301 +21,70 @@ export interface ToolDef {
   desc: { ja: string; en: string };
   category: 'case' | 'width' | 'kana' | 'code' | 'organize' | 'encode';
   tags: { ja: string[]; en: string[] };
-  shortcuts?: string[];
 }
 
 export const tools: ToolDef[] = [
-  { 
-    id: 'upper', 
-    label: { ja: '大文字', en: 'UPPERCASE' }, 
-    desc: { ja: 'すべてを大文字に変換します', en: 'Convert to ALL UPPERCASE' }, 
-    category: 'case',
-    tags: { ja: ['英文', '定数定数名'], en: ['English', 'Constants'] }
-  },
-  { 
-    id: 'lower', 
-    label: { ja: '小文字', en: 'lowercase' }, 
-    desc: { ja: 'すべてを小文字に変換します', en: 'Convert to all lowercase' }, 
-    category: 'case',
-    tags: { ja: ['英文', 'プログラミング'], en: ['English', 'Programming'] }
-  },
-  { 
-    id: 'title', 
-    label: { ja: 'タイトル名', en: 'Title Case' }, 
-    desc: { ja: '各単語の先頭を大文字にします', en: 'Capitalize each word' }, 
-    category: 'case',
-    tags: { ja: ['タイトル', '英文'], en: ['Titles', 'English'] }
-  },
-  { 
-    id: 'sentence', 
-    label: { ja: '一文字目大文字', en: 'Sentence case' }, 
-    desc: { ja: '最初の一文字目だけ大文字にします', en: 'Capitalize only the first letter' }, 
-    category: 'case',
-    tags: { ja: ['文章', '英文'], en: ['Sentences', 'English'] }
-  },
-  
-  { 
-    id: 'full-width', 
-    label: { ja: '全角に変換', en: 'Full-width' }, 
-    desc: { ja: '半角文字を全角文字に変換します', en: 'Convert half-width to full-width' }, 
-    category: 'width',
-    tags: { ja: ['日本語入力', 'フォーム入力'], en: ['Japanese', 'Forms'] }
-  },
-  { 
-    id: 'half-width', 
-    label: { ja: '半角に変換', en: 'Half-width' }, 
-    desc: { ja: '全角文字を半角文字に変換します', en: 'Convert full-width to half-width' }, 
-    category: 'width',
-    tags: { ja: ['数字', '英数字', 'DB'], en: ['Numbers', 'Alphanumeric', 'DB'] }
-  },
-  
-  { 
-    id: 'hiragana', 
-    label: { ja: 'ひらがな', en: 'Hiragana' }, 
-    desc: { ja: 'カタカナをひらがなに変換します', en: 'Convert Katakana to Hiragana' }, 
-    category: 'kana',
-    tags: { ja: ['日本語', '教育', '読み'], en: ['Japanese', 'Education'] }
-  },
-  { 
-    id: 'katakana', 
-    label: { ja: 'カタカナ', en: 'Katakana' }, 
-    desc: { ja: 'ひらがなをカタカナに変換します', en: 'Convert Hiragana to Katakana' }, 
-    category: 'kana',
-    tags: { ja: ['日本語', '固有名詞'], en: ['Japanese', 'Proper Nouns'] }
-  },
-  { 
-    id: 'half-katakana', 
-    label: { ja: '半角カタカナ', en: 'Half-width Katakana' }, 
-    desc: { ja: 'ひらがな・カタカナを半角にします', en: 'Convert Hiragana/Katakana to Half-width' }, 
-    category: 'kana',
-    tags: { ja: ['レガシーシステム', '銀行', 'DB'], en: ['Legacy Systems', 'Banking', 'DB'] }
-  },
-  { 
-    id: 'from-half-katakana', 
-    label: { ja: '半角→全角カナ', en: 'Half → Full Katakana' }, 
-    desc: { ja: '半角カタカナを全角カタカナに変換します', en: 'Convert Half-width Katakana to Full-width' }, 
-    category: 'kana',
-    tags: { ja: ['テキスト整理', '日本語'], en: ['Organization', 'Japanese'] }
-  },
-  { 
-    id: 'half-katakana-to-hiragana', 
-    label: { ja: '半角カナ→ひらがな', en: 'Half → Hiragana' }, 
-    desc: { ja: '半角カタカナをひらがなに変換します', en: 'Convert Half-width Katakana to Hiragana' }, 
-    category: 'kana',
-    tags: { ja: ['テキスト整理', '日本語'], en: ['Organization', 'Japanese'] }
-  },
-  { 
-    id: 'romaji', 
-    label: { ja: 'ローマ字', en: 'Romaji' }, 
-    desc: { ja: 'ひらがな・カタカナをローマ字に変換します', en: 'Convert Kana to Romaji' }, 
-    category: 'kana',
-    tags: { ja: ['日本語学習', '英語圏向け'], en: ['Jp Learning', 'English Speakers'] }
-  },
-  
-  { 
-    id: 'slug', 
-    label: { ja: 'スラッグ化', en: 'Slugify' }, 
-    desc: { ja: 'URLに適した形式に変換します', en: 'Convert to URL-friendly slug' }, 
-    category: 'code',
-    tags: { ja: ['URL', 'ブログ', 'SEO'], en: ['URL', 'Blog', 'SEO'] }
-  },
-  { 
-    id: 'camel', 
-    label: { ja: 'camelCase', en: 'camelCase' }, 
-    desc: { ja: 'キャメルケースに変換します', en: 'Convert to camelCase' }, 
-    category: 'code',
-    tags: { ja: ['JS/TS', '変数名'], en: ['JS/TS', 'Variable Names'] }
-  },
-  { 
-    id: 'snake', 
-    label: { ja: 'snake_case', en: 'snake_case' }, 
-    desc: { ja: 'スネークケースに変換します', en: 'Convert to snake_case' }, 
-    category: 'code',
-    tags: { ja: ['Python/Ruby', 'DBカラム名'], en: ['Python/Ruby', 'DB Columns'] }
-  },
-  { 
-    id: 'pascal', 
-    label: { ja: 'PascalCase', en: 'PascalCase' }, 
-    desc: { ja: 'パスカルケースに変換します', en: 'Convert to PascalCase' }, 
-    category: 'code',
-    tags: { ja: ['React/Java', 'クラス名'], en: ['React/Java', 'Class Names'] }
-  },
-  
-  { 
-    id: 'trim', 
-    label: { ja: '前後の余白削除', en: 'Trim' }, 
-    desc: { ja: 'テキスト前後の余白を削除します', en: 'Remove whitespace from both ends' }, 
-    category: 'organize',
-    tags: { ja: ['データ清掃', '汎用'], en: ['Data Cleaning', 'General'] }
-  },
-  { 
-    id: 'whitespace', 
-    label: { ja: '余白整理', en: 'Clean Space' }, 
-    desc: { ja: '連続する空白を1つにまとめます', en: 'Consolidate multiple spaces' }, 
-    category: 'organize',
-    tags: { ja: ['文章校正', 'ドキュメント'], en: ['Proofreading', 'Document'] }
-  },
-  { 
-    id: 'line-breaks', 
-    label: { ja: '空行の削除', en: 'Clean lines' }, 
-    desc: { ja: '連続する改行を1つにします', en: 'Consolidate multiple newlines' }, 
-    category: 'organize',
-    tags: { ja: ['コード整理', '文章'], en: ['Code Cleanup', 'Writing'] }
-  },
-  { 
-    id: 'duplicate', 
-    label: { ja: '重複行の削除', en: 'Remove duplicates' }, 
-    desc: { ja: '同じ内容の行を一行にまとめます', en: 'Remove duplicate lines' }, 
-    category: 'organize',
-    tags: { ja: ['リスト整理', 'ログ解析'], en: ['List Cleanup', 'Logs'] }
-  },
-  { 
-    id: 'sort', 
-    label: { ja: '行の並べ替え', en: 'Sort lines' }, 
-    desc: { ja: '行を五十音・アルファベット順に並べます', en: 'Sort lines alphabetically' }, 
-    category: 'organize',
-    tags: { ja: ['リスト整理', '汎用'], en: ['List Sorting', 'General'] }
-  },
-  
-  { 
-    id: 'base64-encode', 
-    label: { ja: 'Base64 エンコード', en: 'Base64 Encode' }, 
-    desc: { ja: 'データをBase64形式に変換します', en: 'Encode to Base64' }, 
-    category: 'encode',
-    tags: { ja: ['データ転送', '画像', '通信'], en: ['Data Transfer', 'Images', 'Networking'] }
-  },
-  { 
-    id: 'base64-decode', 
-    label: { ja: 'Base64 デコード', en: 'Base64 Decode' }, 
-    desc: { ja: 'Base64形式を元に戻します', en: 'Decode from Base64' }, 
-    category: 'encode',
-    tags: { ja: ['データ復元', '画像解析'], en: ['Data Recovery', 'Image Analysis'] }
-  },
-  { 
-    id: 'url-encode', 
-    label: { ja: 'URL エンコード', en: 'URL Encode' }, 
-    desc: { ja: 'URLに適した形式にエンコードします', en: 'Encode as URL parameter' }, 
-    category: 'encode',
-    tags: { ja: ['URL引数', 'ブラウザ'], en: ['URL Params', 'Web Browser'] }
-  },
-  { 
-    id: 'url-decode', 
-    label: { ja: 'URL デコード', en: 'URL Decode' }, 
-    desc: { ja: 'URLエンコードされた文字を戻します', en: 'Decode URL parameters' }, 
-    category: 'encode',
-    tags: { ja: ['URL引数', 'デバッグ'], en: ['URL Params', 'Debug'] }
-  },
-  { 
-    id: 'html-encode', 
-    label: { ja: 'HTML Entity エンコード', en: 'HTML Entity Encode' }, 
-    desc: { ja: 'HTMLタグなどをエスケープします', en: 'Encode HTML entities' }, 
-    category: 'encode',
-    tags: { ja: ['セキュリティ', 'XSS対策', 'ウェブ'], en: ['Security', 'XSS', 'Web'] }
-  },
-  { 
-    id: 'html-decode', 
-    label: { ja: 'HTML Entity デコード', en: 'HTML Entity Decode' }, 
-    desc: { ja: 'HTMLエンティティを元に戻します', en: 'Decode HTML entities' }, 
-    category: 'encode',
-    tags: { ja: ['テキスト解析', 'スクレイピング'], en: ['Text Analysis', 'Scraping'] }
-  },
-  
-  { 
-    id: 'json-format', 
-    label: { ja: 'JSON 整形', en: 'JSON Beautify' }, 
-    desc: { ja: 'JSONを整形して読みやすくします', en: 'Format and beautify JSON' }, 
-    category: 'code',
-    tags: { ja: ['API', '設定ファイル', '開発者'], en: ['API', 'Config Files', 'Developer'] }
-  },
-  { 
-    id: 'json-minify', 
-    label: { ja: 'JSON 圧縮', en: 'JSON Minify' }, 
-    desc: { ja: 'JSONから空白を削除し軽量化します', en: 'Remove all spaces from JSON' }, 
-    category: 'code',
-    tags: { ja: ['通信最適化', '軽量化'], en: ['Networking', 'Payload Size'] }
-  },
-  { 
-    id: 'binary-encode', 
-    label: { ja: 'Binary エンコード', en: 'Text to Binary' }, 
-    desc: { ja: 'テキストを二進数形式に変換します', en: 'Convert text to binary representation' }, 
-    category: 'encode',
-    tags: { ja: ['コンピューター科学', 'デバッグ'], en: ['CS', 'Debug'] }
-  },
-  { 
-    id: 'binary-decode', 
-    label: { ja: 'Binary デコード', en: 'Binary to Text' }, 
-    desc: { ja: '二進数形式のテキストを元に戻します', en: 'Convert binary strings back to text' }, 
-    category: 'encode',
-    tags: { ja: ['デコード', '解析'], en: ['Decode', 'Analysis'] }
-  },
-  { 
-    id: 'num-to-bin', 
-    label: { ja: '10進数→2進数', en: 'Dec to Bin' }, 
-    desc: { ja: '数字（10進数）を二進数に変換します', en: 'Convert decimal number to binary' }, 
-    category: 'encode',
-    tags: { ja: ['計算', '基礎'], en: ['Math', 'Computing'] }
-  },
-  { 
-    id: 'bin-to-num', 
-    label: { ja: '2進数→10進数', en: 'Bin to Dec' }, 
-    desc: { ja: '二進数を数字（10進数）に戻します', en: 'Convert binary to decimal number' }, 
-    category: 'encode',
-    tags: { ja: ['計算', '基礎'], en: ['Math', 'Computing'] }
-  },
-  { 
-    id: 'html-format', 
-    label: { ja: 'HTML 整形', en: 'HTML Beautify' }, 
-    desc: { ja: 'HTMLを整形して読みやすくします', en: 'Format and beautify HTML code' }, 
-    category: 'code',
-    tags: { ja: ['ウェブ開発', 'ブラウザ'], en: ['Web Dev', 'Browser'] }
-  },
-  { 
-    id: 'html-minify', 
-    label: { ja: 'HTML 圧縮', en: 'HTML Minify' }, 
-    desc: { ja: 'HTMLから空白やコメントを削除します', en: 'Remove spaces and comments from HTML' }, 
-    category: 'code',
-    tags: { ja: ['SEO', '軽量化'], en: ['SEO', 'Payload Size'] }
-  },
-  { 
-    id: 'code-format', 
-    label: { ja: 'Code 整形', en: 'Code Beautify' }, 
-    desc: { ja: 'コード（JS/CSS等）を整形します', en: 'Apply generic indentation to code' }, 
-    category: 'code',
-    tags: { ja: ['開発効率', '可読性'], en: ['Productivity', 'Readability'] }
-  },
-  { 
-    id: 'code-minify', 
-    label: { ja: 'Code 圧縮', en: 'Code Minify' }, 
-    desc: { ja: 'コードの空白やコメントを一括削除します', en: 'Minify code by removing spaces and comments' }, 
-    category: 'code',
-    tags: { ja: ['パフォーマンス', '軽量化'], en: ['Performance', 'Minification'] }
-  },
-  { 
-    id: 'strike', 
-    label: { ja: '取り消し線', en: 'Strikethrough' }, 
-    desc: { ja: 'テキストに取り消し線を引きます', en: 'Draw a horizontal line through text' }, 
-    category: 'case',
-    tags: { ja: ['SNS', '強調', '装飾'], en: ['Social Media', 'Emphasis', 'Decoration'] }
-  },
-  { 
-    id: 'slanted', 
-    label: { ja: '斜体文字', en: 'Slanted Math' }, 
-    desc: { ja: '斜体（数学記号）に変換します', en: 'Convert to slanted mathematical italics' }, 
-    category: 'case',
-    tags: { ja: ['SNS', 'デザイン'], en: ['Social Media', 'Design'] }
-  },
-  { 
-    id: 'remove-nl', 
-    label: { ja: '全改行削除', en: 'Remove Newlines' }, 
-    desc: { ja: 'すべての改行を削除し1行にします', en: 'Remove all line breaks' }, 
-    category: 'organize',
-    tags: { ja: ['テキスト整形', '1行化'], en: ['Compact', 'Single Line'] }
-  },
-  { 
-    id: 'remove-ws', 
-    label: { ja: '全空白削除', en: 'Remove Spaces' }, 
-    desc: { ja: 'すべての空白（スペース・タブ）を削除します', en: 'Remove all whitespace' }, 
-    category: 'organize',
-    tags: { ja: ['データ清掃', '軽量化'], en: ['Data Cleaning', 'Compact'] }
-  },
+  // --- CASE ---
+  { id: 'upper', label: { ja: '大文字', en: 'UPPERCASE' }, desc: { ja: 'すべてを大文字に変換します', en: 'Convert to ALL UPPERCASE' }, category: 'case', tags: { ja: ['アルファベット', '英文'], en: ['Alphabet', 'English'] } },
+  { id: 'lower', label: { ja: '小文字', en: 'lowercase' }, desc: { ja: 'すべてを小文字に変換します', en: 'Convert to all lowercase' }, category: 'case', tags: { ja: ['アルファベット', '英文'], en: ['Alphabet', 'English'] } },
+  { id: 'title', label: { ja: 'タイトル名', en: 'Title Case' }, desc: { ja: '各単語の先頭を大文字にします', en: 'Capitalize each word' }, category: 'case', tags: { ja: ['アルファベット', '単語'], en: ['Alphabet', 'Words'] } },
+  { id: 'sentence', label: { ja: '一文字目大文字', en: 'Sentence case' }, desc: { ja: '最初の一文字目だけ大文字にします', en: 'Capitalize only the first letter' }, category: 'case', tags: { ja: ['アルファベット', '文章'], en: ['Alphabet', 'Sentences'] } },
+  { id: 'alternating', label: { ja: '大小交互', en: 'aLtErNaTiNg' }, desc: { ja: '大文字と小文字を交互に並べます', en: 'Alternate between upper and lower' }, category: 'case', tags: { ja: ['アルファベット', '装飾'], en: ['Alphabet', 'Decoration'] } },
+  { id: 'reverse', label: { ja: '逆順', en: 'Reverse' }, desc: { ja: '文字列を逆から並べます', en: 'Reverse the character sequence' }, category: 'case', tags: { ja: ['文字列', '入れ替え'], en: ['String', 'Flip'] } },
+  { id: 'initials', label: { ja: 'イニシャル', en: 'Initials' }, desc: { ja: '単語の頭文字だけを抽出します', en: 'Extract first letters' }, category: 'case', tags: { ja: ['アルファベット', '省略'], en: ['Alphabet', 'Short'] } },
+
+  // --- WIDTH / KANA ---
+  { id: 'full-width', label: { ja: '全角文字', en: 'Full-width' }, desc: { ja: '半角を全角に変換します', en: 'Convert to Full-width' }, category: 'width', tags: { ja: ['全角', '半角'], en: ['Full-width', 'Half-width'] } },
+  { id: 'half-width', label: { ja: '半角文字', en: 'Half-width' }, desc: { ja: '全角を半角に変換します', en: 'Convert to Half-width' }, category: 'width', tags: { ja: ['全角', '半角'], en: ['Full-width', 'Half-width'] } },
+  { id: 'hiragana', label: { ja: 'ひらがな', en: 'Hiragana' }, desc: { ja: 'カタカナをひらがなに戻します', en: 'Katakana to Hiragana' }, category: 'kana', tags: { ja: ['カタカナ', 'ひらがな'], en: ['Katakana', 'Hiragana'] } },
+  { id: 'katakana', label: { ja: 'カタカナ', en: 'Katakana' }, desc: { ja: 'ひらがなをカタカナにします', en: 'Hiragana to Katakana' }, category: 'kana', tags: { ja: ['ひらがな', 'カタカナ'], en: ['Hiragana', 'Katakana'] } },
+  { id: 'romaji', label: { ja: 'ローマ字', en: 'Romaji' }, desc: { ja: 'カナをローマ字に変換します', en: 'Kana to Romaji' }, category: 'kana', tags: { ja: ['日本語', 'ローマ字'], en: ['Japanese', 'Romaji'] } },
+  { id: 'half-katakana', label: { ja: '半角カナ', en: 'Half Katakana' }, desc: { ja: 'カナを半角にします', en: 'Kana to Half-width' }, category: 'kana', tags: { ja: ['カナ', '半角'], en: ['Kana', 'Half-width'] } },
+  { id: 'from-half-katakana', label: { ja: '半角→全角カナ', en: 'Half → Full Katakana' }, desc: { ja: '半角カタカナを全角カタカナに変換します', en: 'Convert Half-width Katakana to Full-width' }, category: 'kana', tags: { ja: ['半角カナ', '全角'], en: ['Half-width', 'Full-width'] } },
+  { id: 'half-katakana-to-hiragana', label: { ja: '半角カナ→ひらがな', en: 'Half → Hiragana' }, desc: { ja: '半角カタカナをひらがなに変換します', en: 'Convert Half-width Katakana to Hiragana' }, category: 'kana', tags: { ja: ['半角カナ', 'ひらがな'], en: ['Half-width', 'Hiragana'] } },
+
+  // --- CODE FORMATS ---
+  { id: 'upper-camel', label: { ja: 'UpperCamelCase', en: 'UpperCamel' }, desc: { ja: 'アッパーキャメル（単語の区切りを大文字に）', en: 'Capitalize each word start' }, category: 'code', tags: { ja: ['プログラミング', '変数'], en: ['Programming', 'Variables'] } },
+  { id: 'lower-camel', label: { ja: 'lowerCamelCase', en: 'lowerCamel' }, desc: { ja: 'ローワーキャメル（一文字目を小文字に）', en: 'CamelCase with lower start' }, category: 'code', tags: { ja: ['プログラミング', '変数'], en: ['Programming', 'Variables'] } },
+  { id: 'upper-snake', label: { ja: 'UPPER_SNAKE_CASE', en: 'UPPER_SNAKE' }, desc: { ja: 'アッパースネーク（アンダーバー区切り）', en: 'Upper with underscores' }, category: 'code', tags: { ja: ['プログラミング', '定数'], en: ['Programming', 'Constants'] } },
+  { id: 'lower-snake', label: { ja: 'lower_snake_case', en: 'lower_snake' }, desc: { ja: 'ローワースネーク', en: 'Lower with underscores' }, category: 'code', tags: { ja: ['プログラミング', 'DB'], en: ['Programming', 'Database'] } },
+  { id: 'upper-kebab', label: { ja: 'UPPER-KEBAB-CASE', en: 'UPPER-KEBAB' }, desc: { ja: 'アッパーケバブ（ハイフン区切り）', en: 'Upper with hyphens' }, category: 'code', tags: { ja: ['プログラミング', 'CSS'], en: ['Programming', 'CSS'] } },
+  { id: 'lower-kebab', label: { ja: 'lower-kebab-case', en: 'lower-kebab' }, desc: { ja: 'ローワーケバブ', en: 'Lower with hyphens' }, category: 'code', tags: { ja: ['プログラミング', 'URL'], en: ['Programming', 'URL'] } },
+  { id: 'json-format', label: { ja: 'JSON 整形', en: 'JSON Beautify' }, desc: { ja: 'JSONを整形します', en: 'Format JSON' }, category: 'code', tags: { ja: ['JSON', '整形'], en: ['JSON', 'Format'] } },
+  { id: 'json-minify', label: { ja: 'JSON 圧縮', en: 'JSON Minify' }, desc: { ja: 'JSONを圧縮します', en: 'Minify JSON' }, category: 'code', tags: { ja: ['JSON', '圧縮'], en: ['JSON', 'Minify'] } },
+  { id: 'html-format', label: { ja: 'HTML 整形', en: 'HTML Beautify' }, desc: { ja: 'HTMLを整形します', en: 'Format HTML' }, category: 'code', tags: { ja: ['HTML', 'タグ'], en: ['HTML', 'Format'] } },
+  { id: 'html-minify', label: { ja: 'HTML 圧縮', en: 'HTML Minify' }, desc: { ja: 'HTMLを圧縮します', en: 'Minify HTML' }, category: 'code', tags: { ja: ['HTML', '最小化'], en: ['HTML', 'Minify'] } },
+  { id: 'code-format', label: { ja: 'Code 整形', en: 'Code Beautify' }, desc: { ja: 'Codeを整形します', en: 'Format Code' }, category: 'code', tags: { ja: ['プログラミング', '整形'], en: ['Code', 'Format'] } },
+  { id: 'code-minify', label: { ja: 'Code 圧縮', en: 'Code Minify' }, desc: { ja: 'Codeを圧縮します', en: 'Minify Code' }, category: 'code', tags: { ja: ['JS/CSS', '圧縮'], en: ['JS/CSS', 'Minify'] } },
+
+  // --- ORGANIZE ---
+  { id: 'trim', label: { ja: '余白トリム', en: 'Trim' }, desc: { ja: '前後の余白を削除します', en: 'Remove surrounding whitespace' }, category: 'organize', tags: { ja: ['空白', '整理'], en: ['Whitespace', 'Fix'] } },
+  { id: 'whitespace', label: { ja: '空白整理', en: 'Clean Space' }, desc: { ja: '連続する空白を1つにします', en: 'Fix double spaces' }, category: 'organize', tags: { ja: ['文章', '空白'], en: ['Text', 'Whitespace'] } },
+  { id: 'duplicate', label: { ja: '重複行削除', en: 'Duplicate Remove' }, desc: { ja: '同じ行を一行にまとめます', en: 'Remove identical lines' }, category: 'organize', tags: { ja: ['行削除', 'リスト'], en: ['Line', 'List'] } },
+  { id: 'sort', label: { ja: '行ソート', en: 'Line Sort' }, desc: { ja: '昇順に並べ替えます', en: 'Sort lines alphabetically' }, category: 'organize', tags: { ja: ['リスト', '順序'], en: ['List', 'Order'] } },
+  { id: 'remove-nl', label: { ja: '全改行削除', en: 'Clear Newlines' }, desc: { ja: '1行にまとめます', en: 'Make single line' }, category: 'organize', tags: { ja: ['改行', '1行化'], en: ['Lines', 'Compact'] } },
+
+  // --- ENCODE / DATA ---
+  { id: 'base64-encode', label: { ja: 'Base64', en: 'Base64 Encode' }, desc: { ja: 'Base64にエンコードします', en: 'Binary to Base64' }, category: 'encode', tags: { ja: ['バイナリ', 'データ'], en: ['Binary', 'Data'] } },
+  { id: 'hex-encode', label: { ja: '16進数文字列', en: 'Hex Encode' }, desc: { ja: '16進数形式に変換します', en: 'Text to Hex' }, category: 'encode', tags: { ja: ['16進数', 'コード'], en: ['Hex', 'Code'] } },
+  { id: 'unicode-escape', label: { ja: 'Unicodeエスケープ', en: 'Unicode Escape' }, desc: { ja: '\\uXXXX 形式にします', en: 'To Unicode escape sequences' }, category: 'encode', tags: { ja: ['プログラミング', '文字'], en: ['Code', 'Chars'] } },
+  { id: 'morse', label: { ja: 'モールス符号', en: 'Morse Code' }, desc: { ja: 'モールス信号に変換します', en: 'Convert to dots and dashes' }, category: 'encode', tags: { ja: ['信号', '通信'], en: ['Signal', 'Networking'] } },
+  { id: 'braille', label: { ja: '点字', en: 'Braille' }, desc: { ja: '点字に変換します', en: 'Dots representation' }, category: 'encode', tags: { ja: ['アクセシビリティ', '点'], en: ['A11y', 'Dots'] } },
+  { id: 'hieroglyph', label: { ja: 'ヒエログリフ', en: 'Hieroglyph' }, desc: { ja: '古代エジプト文字にします', en: 'Ancient Egyptian script' }, category: 'encode', tags: { ja: ['装飾', 'エジプト'], en: ['Decoration', 'Egypt'] } },
+
+  // --- MATH / NUM ---
+  { id: 'num-to-bin', label: { ja: '数値から2進数', en: 'Dec to Bin' }, desc: { ja: '10進数を二進数にします', en: 'Decimal to Binary' }, category: 'encode', tags: { ja: ['数字', '進数'], en: ['Math', 'Bases'] } },
+  { id: 'num-to-hex', label: { ja: '数値から16進数', en: 'Dec to Hex' }, desc: { ja: '10進数を16進数にします', en: 'Decimal to Hex' }, category: 'encode', tags: { ja: ['数字', '進数'], en: ['Math', 'Hex'] } },
+  { id: 'num-to-kanji', label: { ja: '数値から漢数字', en: 'Num to Kanji' }, desc: { ja: '数字を漢数字にします', en: 'Convert to Kanji numbers' }, category: 'encode', tags: { ja: ['日本語', '漢数字'], en: ['Japanese', 'Numbers'] } },
+  { id: 'num-to-frac', label: { ja: '数値から分数', en: 'Num to Frac' }, desc: { ja: '小数などを分数の形にします', en: 'To fractional format' }, category: 'encode', tags: { ja: ['数学', '計算'], en: ['Math', 'Calculation'] } },
+  { id: 'unix-time', label: { ja: 'UNIXタイム [秒]', en: 'Unix Stamp' }, desc: { ja: '日時からUnixタイムスタンプを生成します', en: 'Current stamp' }, category: 'encode', tags: { ja: ['時間', '開発者'], en: ['Time', 'Developer'] } },
+
+  // --- CRYPTO ---
+  { id: 'caesar', label: { ja: 'シーザー暗号', en: 'Caesar Cipher' }, desc: { ja: '鍵ずらし暗号を適用します', en: 'Shift cipher' }, category: 'encode', tags: { ja: ['暗号', '歴史'], en: ['Cipher', 'Security'] } },
+  { id: 'rot13', label: { ja: 'ROT13', en: 'ROT13' }, desc: { ja: '13文字ずらします', en: 'Shift 13 letters' }, category: 'encode', tags: { ja: ['暗号', '掲示板'], en: ['Cipher', 'Forum'] } },
+  { id: 'md5', label: { ja: 'MD5 ハッシュ', en: 'MD5 Hash' }, desc: { ja: 'MD5値を計算します', en: 'MD5 fingerprint' }, category: 'encode', tags: { ja: ['ハッシュ', '指紋'], en: ['Hash', 'Crypto'] } },
+
+  // --- DECORATION ---
+  { id: 'strike', label: { ja: '取り消し線', en: 'Strikethrough' }, desc: { ja: '横線を引きます', en: 'Cross through text' }, category: 'case', tags: { ja: ['装飾', '強調'], en: ['Decoration', 'Emphasis'] } },
+  { id: 'slanted', label: { ja: '斜体文字', en: 'Slanted' }, desc: { ja: '数学記号で斜体にします', en: 'Mathematical italics' }, category: 'case', tags: { ja: ['装飾', '斜体'], en: ['Decoration', 'Style'] } },
 ];

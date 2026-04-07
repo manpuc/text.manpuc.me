@@ -145,7 +145,13 @@ textarea:focus, input:focus {
 .mr-2 { margin-right: 0.5rem; }
 
 .w-full { width: 100%; }
+.w-4 { width: 1rem; }
+.w-5 { width: 1.25rem; }
+.w-6 { width: 1.5rem; }
 .w-8 { width: 2rem; }
+.h-4 { height: 1rem; }
+.h-5 { height: 1.25rem; }
+.h-6 { height: 1.5rem; }
 .h-8 { height: 2rem; }
 .h-10 { height: 2.5rem; }
 .h-16 { height: 4rem; }
@@ -250,6 +256,7 @@ textarea:focus, input:focus {
 .focus\:border-accent-primary:focus { border-color: var(--accent-primary); }
 .focus\:ring-1:focus { box-shadow: 0 0 0 1px var(--accent-primary); }
 .no-underline { text-decoration: none; }
+.text-left { text-align: left; }
 .inline-block { display: inline-block; }
 .hover\:scale-105:hover { transform: scale(1.05); }
 .active\:scale-95:active { transform: scale(0.95); }
