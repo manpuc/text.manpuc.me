@@ -102,6 +102,9 @@ export const fromHalfKatakana = (text: string) => {
 };
 
 export const toRomaji = (text: string) => {
+  // Convert Katakana to Hiragana first to unify processing
+  const unified = toHiragana(text);
+  
   const map: { [key: string]: string } = {
     'あ': 'a', 'い': 'i', 'う': 'u', 'え': 'e', 'お': 'o',
     'か': 'ka', 'き': 'ki', 'く': 'ku', 'け': 'ke', 'こ': 'ko',
@@ -118,11 +121,30 @@ export const toRomaji = (text: string) => {
     'だ': 'da', 'ぢ': 'ji', 'づ': 'zu', 'で': 'de', 'ど': 'do',
     'ば': 'ba', 'び': 'bi', 'ぶ': 'bu', 'べ': 'be', 'ぼ': 'bo',
     'ぱ': 'pa', 'ぴ': 'pi', 'ぷ': 'pu', 'ぺ': 'pe', 'ぽ': 'po',
-    'ア': 'a', 'イ': 'i', 'ウ': 'u', 'エ': 'e', 'オ': 'o',
-    'カ': 'ka', 'キ': 'ki', 'ク': 'ku', 'ケ': 'ke', 'コ': 'ko'
-    // ... basic mapping provided for demonstration
+    'きゃ': 'kya', 'きゅ': 'kyu', 'きょ': 'kyo',
+    'しゃ': 'sha', 'しゅ': 'shu', 'しょ': 'sho',
+    'ちゃ': 'cha', 'ちゅ': 'chu', 'ちょ': 'cho',
+    'にゃ': 'nya', 'にゅ': 'nyu', 'にょ': 'nyo',
+    'ひゃ': 'hya', 'ひゅ': 'hyu', 'ひょ': 'hyo',
+    'みゃ': 'mya', 'みゅ': 'myu', 'みょ': 'myo',
+    'りゃ': 'rya', 'りゅ': 'ryu', 'りょ': 'ryo',
+    'ぎゃ': 'gya', 'ぎゅ': 'gyu', 'ぎょ': 'gyo',
+    'じゃ': 'ja', 'じゅ': 'ju', 'じょ': 'jo',
+    'びゃ': 'bya', 'びゅ': 'byu', 'びょ': 'byo',
+    'ぴゃ': 'pya', 'ぴゅ': 'pyu', 'ぴょ': 'pyo',
+    'ぁ': 'a', 'ぃ': 'i', 'ぅ': 'u', 'ぇ': 'e', 'ぉ': 'o',
+    'っ': 'tsu', 'ゃ': 'ya', 'ゅ': 'yu', 'ょ': 'yo',
+    'ー': '-', '　': ' '
   };
-  return text.split('').map(char => map[char] || char).join('');
+
+  let result = unified;
+  // Handle compound sounds first (2 chars)
+  const compoundPairs = Object.keys(map).filter(k => k.length === 2);
+  for (const key of compoundPairs) {
+    result = result.split(key).join(map[key] + ' ');
+  }
+  
+  return result.split('').map(char => map[char] || char).join('').replace(/  /g, ' ').trim();
 };
 
 export const toSlug = (text: string) => {
