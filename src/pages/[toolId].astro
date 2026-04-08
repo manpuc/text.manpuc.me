@@ -13,11 +13,54 @@ export function getStaticPaths() {
 const { toolId } = Astro.params;
 const { tool } = Astro.props;
 
-const lang = "ja"; // Default to Japanese for root-level tool pages
-const title = `${tool.label[lang]}変換 (${tool.desc[lang]}) - TextFlow`;
-const description = `${tool.label[lang]}への変換ツールです。${tool.desc[lang]}。Webブラウザ上で登録不要、完全無料で利用できます。`;
+const lang = "ja";
+const toolName = tool.label[lang];
+const title = `${toolName} 変換｜無料オンラインツール - TextFlow`;
+const description = `${toolName}に一括変換できる無料のオンラインツールです。${tool.desc[lang]}。登録不要、ブラウザ完結で安全・高速に利用可能です。`;
+
+// Related tools (same category, excluding current)
+const relatedTools = tools
+  .filter((t) => t.category === tool.category && t.id !== toolId)
+  .slice(0, 6);
 ---
 
 <Layout title={title} description={description} lang={lang}>
-  <Shell initialLang={lang} initialToolId={toolId as any} client:load />
+  {/* Additional Structured Data for Breadcrumbs */}
+  <script type="application/ld+json" is:inline set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "ホーム",
+        "item": Astro.site
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": toolName,
+        "item": Astro.url.href
+      }
+    ]
+  })} />
+
+  <Shell initialLang={lang} initialToolId={toolId as any} client:visible />
+
+  {relatedTools.length > 0 && (
+    <footer class="max-w-6xl mx-auto px-4 py-12 border-t border-gray-200 dark:border-gray-800">
+      <h2 class="text-xl font-bold mb-6 opacity-80">関連ツール</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {relatedTools.map((t) => (
+          <a
+            href={`/${t.id}`}
+            class="p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 hover:bg-white dark:hover:bg-gray-800 hover:shadow-lg transition-all duration-200 group"
+          >
+            <div class="font-bold group-hover:text-blue-500 transition-colors">{t.label[lang]}</div>
+            <div class="text-xs opacity-60 mt-1 line-clamp-1">{t.desc[lang]}</div>
+          </a>
+        ))}
+      </div>
+    </footer>
+  )}
 </Layout>

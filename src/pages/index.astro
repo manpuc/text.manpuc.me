@@ -6,12 +6,12 @@ import { getLangFromUrl } from "../i18n/utils";
 const lang = getLangFromUrl(Astro.url);
 const title =
   lang === "ja"
-    ? "TextFlow - テキスト変換ツール"
-    : "TextFlow - Text Conversion Tools";
+    ? "TextFlow - テキスト変換・加工ツール集｜無料・登録不要"
+    : "TextFlow - High-quality Text Conversion Tools";
 const description =
   lang === "ja"
-    ? "エンジニアやクリエイターのための高品質テキスト変換ツール集。大文字小文字変換、ひらがなカタカナ変換、プログラミング用ケース変換、JSON整形などを無料で提供。"
-    : "High-quality text conversion tools for developers and creators. Case conversion, Japanese kana, coding formats, and more. Free and secure.";
+    ? "エンジニアやクリエイターのための高品質テキスト変換ツール集。漢字・かな変換、プログラミング用ケース変換、JSON整形、Base64、暗号化などをブラウザ上で安全・高速に無料で提供。"
+    : "Professional text conversion tools for developers and creators. Case conversion, Japanese kana, coding formats, and more. Free, secure, and browser-based.";
 ---
 
 <Layout title={title} description={description} lang={lang}>

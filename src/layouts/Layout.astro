@@ -21,6 +21,7 @@ const { title, description, lang = "ja" } = Astro.props;
 		/>
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="shortcut icon" href="/favicon.ico" />
 		<link rel="manifest" href="/manifest.json" />
 		<meta name="mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-capable" content="yes" />
@@ -32,6 +33,10 @@ const { title, description, lang = "ja" } = Astro.props;
 
 		{/* SEO / Social Meta Tags */}
 		<link rel="canonical" href={Astro.url.href} />
+		<link rel="alternate" hreflang="ja" href={new URL(Astro.url.pathname.replace(/^\/en/, ""), Astro.site)} />
+		<link rel="alternate" hreflang="en" href={new URL(`/en${Astro.url.pathname.replace(/^\/en/, "")}`, Astro.site)} />
+		<link rel="alternate" hreflang="x-default" href={new URL(Astro.url.pathname.replace(/^\/en/, ""), Astro.site)} />
+
 		<meta property="og:title" content={title} />
 		<meta
 			property="og:description"
@@ -48,6 +53,26 @@ const { title, description, lang = "ja" } = Astro.props;
 			content={description ||
 				"TextFlow - High-quality text conversion tools for developers and users."}
 		/>
+
+		{/* Structured Data */}
+		<script type="application/ld+json" is:inline set:html={JSON.stringify({
+			"@context": "https://schema.org",
+			"@type": "WebApplication",
+			"name": title,
+			"description": description || "TextFlow - High-quality text conversion tools for developers and users.",
+			"url": Astro.url.href,
+			"applicationCategory": "UtilityApplication",
+			"operatingSystem": "Any",
+			"offers": {
+				"@type": "Offer",
+				"price": "0",
+				"priceCurrency": "USD"
+			},
+			"author": {
+				"@type": "Person",
+				"name": "manpuc"
+			}
+		})} />
 
 		<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "4609e72e0da741f2aaeb42eda75fa2fd"}'></script><!-- End Cloudflare Web Analytics -->
 
