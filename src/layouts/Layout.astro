@@ -1,35 +1,70 @@
-
 ---
-import '../styles/global.css';
+import "../styles/global.css";
 
 interface Props {
 	title: string;
 	description?: string;
-	lang: 'en' | 'ja';
+	lang: "en" | "ja";
 }
 
-const { title, description, lang = 'ja' } = Astro.props;
+const { title, description, lang = "ja" } = Astro.props;
 ---
 
 <!doctype html>
 <html lang={lang} data-theme="light">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="description" content={description || "TextFlow - High-quality text conversion tools for developers and users."} />
+		<meta
+			name="description"
+			content={description ||
+				"TextFlow - High-quality text conversion tools for developers and users."}
+		/>
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="manifest" href="/manifest.json" />
+		<meta name="mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+		<meta name="apple-mobile-web-app-title" content="TextFlow" />
+		<link rel="apple-touch-icon" href="/pwa-ico.png" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
 
+		{/* SEO / Social Meta Tags */}
+		<link rel="canonical" href={Astro.url.href} />
+		<meta property="og:title" content={title} />
+		<meta
+			property="og:description"
+			content={description ||
+				"TextFlow - High-quality text conversion tools for developers and users."}
+		/>
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={Astro.url.href} />
+		<meta property="og:site_name" content="TextFlow" />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={title} />
+		<meta
+			name="twitter:description"
+			content={description ||
+				"TextFlow - High-quality text conversion tools for developers and users."}
+		/>
+
 		{/* Cloudflare Browser Insights */}
-		<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "YOUR_CF_TOKEN_HERE"}'></script>
+		<script
+			defer
+			src="https://static.cloudflareinsights.com/beacon.min.js"
+			data-cf-beacon='{"token": "YOUR_CF_TOKEN_HERE"}'></script>
 
 		<script is:inline>
-			(function() {
-				const storedTheme = localStorage.getItem('theme');
-				const preferredTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+			(function () {
+				const storedTheme = localStorage.getItem("theme");
+				const preferredTheme = window.matchMedia(
+					"(prefers-color-scheme: dark)",
+				).matches
+					? "dark"
+					: "light";
 				const theme = storedTheme || preferredTheme;
-				document.documentElement.setAttribute('data-theme', theme);
+				document.documentElement.setAttribute("data-theme", theme);
 			})();
 		</script>
 	</head>
@@ -44,7 +79,7 @@ const { title, description, lang = 'ja' } = Astro.props;
 		--text-primary: #1a1c1e;
 	}
 
-	html[data-theme='dark'] {
+	html[data-theme="dark"] {
 		--bg-primary: #0f1113;
 		--text-primary: #f2f4f6;
 	}

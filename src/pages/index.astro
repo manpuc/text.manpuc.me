@@ -1,13 +1,19 @@
-
 ---
-import Layout from '../layouts/Layout.astro';
-import { Shell } from '../components/Shell';
-import { getLangFromUrl } from '../i18n/utils';
+import Layout from "../layouts/Layout.astro";
+import { Shell } from "../components/Shell";
+import { getLangFromUrl } from "../i18n/utils";
 
 const lang = getLangFromUrl(Astro.url);
-const title = lang === 'ja' ? 'TextFlow - テキスト変換ツール' : 'TextFlow - Text Conversion Tools';
+const title =
+  lang === "ja"
+    ? "TextFlow - テキスト変換ツール"
+    : "TextFlow - Text Conversion Tools";
+const description =
+  lang === "ja"
+    ? "エンジニアやクリエイターのための高品質テキスト変換ツール集。大文字小文字変換、ひらがなカタカナ変換、プログラミング用ケース変換、JSON整形などを無料で提供。"
+    : "High-quality text conversion tools for developers and creators. Case conversion, Japanese kana, coding formats, and more. Free and secure.";
 ---
 
-<Layout title={title} lang={lang}>
-	<Shell initialLang={lang} client:load />
+<Layout title={title} description={description} lang={lang}>
+  <Shell initialLang={lang} client:load />
 </Layout>

@@ -1,0 +1,23 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { Shell } from "../components/Shell";
+import { tools } from "../data/tools";
+
+export function getStaticPaths() {
+  return tools.map((tool) => ({
+    params: { toolId: tool.id },
+    props: { tool },
+  }));
+}
+
+const { toolId } = Astro.params;
+const { tool } = Astro.props;
+
+const lang = "ja"; // Default to Japanese for root-level tool pages
+const title = `${tool.label[lang]}変換 (${tool.desc[lang]}) - TextFlow`;
+const description = `${tool.label[lang]}への変換ツールです。${tool.desc[lang]}。Webブラウザ上で登録不要、完全無料で利用できます。`;
+---
+
+<Layout title={title} description={description} lang={lang}>
+  <Shell initialLang={lang} initialToolId={toolId as any} client:load />
+</Layout>

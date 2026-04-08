@@ -1,5 +1,5 @@
 
-# TextFlow (txt.manpuc.me)
+# TextFlow (text.manpuc.me)
 
 高品質で高速なテキスト変換ツールサイト。
 

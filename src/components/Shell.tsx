@@ -7,11 +7,12 @@ import { ui } from '../i18n/ui';
 
 interface ShellProps {
   initialLang: 'ja' | 'en';
+  initialToolId?: ToolId;
 }
 
-export const Shell: React.FC<ShellProps> = ({ initialLang }) => {
+export const Shell: React.FC<ShellProps> = ({ initialLang, initialToolId }) => {
   const [lang, setLang] = useState<'ja' | 'en'>(initialLang);
-  const [currentToolId, setCurrentToolId] = useState<ToolId>('upper');
+  const [currentToolId, setCurrentToolId] = useState<ToolId>(initialToolId || 'upper');
   const [inputText, setInputText] = useState('');
   const [outputText, setOutputText] = useState('');
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
@@ -29,7 +30,7 @@ export const Shell: React.FC<ShellProps> = ({ initialLang }) => {
     const keys = key.split('.');
     let cur: any = ui[lang];
     let fallback: any = ui['en'];
-    
+
     let res = cur;
     for (const k of keys) {
       if (!res || res[k] === undefined) {
@@ -38,9 +39,9 @@ export const Shell: React.FC<ShellProps> = ({ initialLang }) => {
       }
       res = res[k];
     }
-    
+
     if (res !== null && typeof res === 'string') return res;
-    
+
     let fbRes = fallback;
     for (const k of keys) {
       if (!fbRes || fbRes[k] === undefined) return key;
@@ -157,9 +158,9 @@ export const Shell: React.FC<ShellProps> = ({ initialLang }) => {
   const filteredTools = useMemo(() => {
     if (!searchQuery) return tools;
     const q = searchQuery.toLowerCase();
-    return tools.filter(tool => 
-      tool.label[lang].toLowerCase().includes(q) || 
-      tool.id.toLowerCase().includes(q) || 
+    return tools.filter(tool =>
+      tool.label[lang].toLowerCase().includes(q) ||
+      tool.id.toLowerCase().includes(q) ||
       tool.category.toLowerCase().includes(q) ||
       tool.tags[lang].some(tag => tag.toLowerCase().includes(q))
     );
@@ -207,6 +208,19 @@ export const Shell: React.FC<ShellProps> = ({ initialLang }) => {
     window.addEventListener('keydown', handlePaletteKey);
     return () => window.removeEventListener('keydown', handlePaletteKey);
   }, [commandPaletteOpen, selectedIndex, filteredTools, handleTransform]);
+
+  useEffect(() => {
+    const isRoot = window.location.pathname === '/' || window.location.pathname === '/en' || window.location.pathname === '/en/';
+    const currentPath = window.location.pathname;
+    const langPrefix = lang === 'en' ? '/en' : '';
+    const targetPath = currentToolId === 'upper' && isRoot ? currentPath : `${langPrefix}/${currentToolId}`;
+
+    if (currentPath !== targetPath && !isRoot) {
+      window.history.pushState({ toolId: currentToolId }, '', targetPath);
+    } else if (isRoot && currentToolId !== 'upper') {
+      window.history.pushState({ toolId: currentToolId }, '', targetPath);
+    }
+  }, [currentToolId, lang]);
 
   const trimmedInput = inputText.trim();
   const hasLatin = /[a-zA-Z]/.test(trimmedInput);
@@ -272,14 +286,14 @@ export const Shell: React.FC<ShellProps> = ({ initialLang }) => {
     if (!trimmedInput || trimmedInput.length < 2) return suggestions;
 
     // Highest Priority: Format specific
-    if (isJson) { try { JSON.parse(trimmedInput); suggestions.push({ id: 'json-format', reason: t('ai.reason.json') }); } catch (e) {} }
+    if (isJson) { try { JSON.parse(trimmedInput); suggestions.push({ id: 'json-format', reason: t('ai.reason.json') }); } catch (e) { } }
     if (isHtml || hasHtmlTags) { suggestions.push({ id: 'html-format', reason: t('ai.reason.html') }); }
-    
+
     // Decoding Suggestions
     if (isBase64) { suggestions.push({ id: 'base64-decode', reason: t('ai.reason.base64') }); }
     if (isUrlEncoded) { suggestions.push({ id: 'url-decode', reason: t('ai.reason.url') }); }
     if (isHexColor) { suggestions.push({ id: 'hex-to-num', reason: 'RGB' }); }
-    
+
     // Numeric Suggestions
     if (isNumber) {
       if (isUnixTime) suggestions.push({ id: 'from-unix', reason: t('ai.reason.time') });
@@ -303,7 +317,7 @@ export const Shell: React.FC<ShellProps> = ({ initialLang }) => {
 
     if (isBinary) { suggestions.push({ id: 'binary-decode', reason: t('ai.reason.base64') }); }
     if (/[ \t]{2,}/.test(inputText)) { suggestions.push({ id: 'whitespace', reason: t('ai.reason.whitespace') }); }
-    
+
     return suggestions.slice(0, 3);
   }, [inputText, lang, trimmedInput, isJson, isHtml, hasHtmlTags, isBase64, isUrlEncoded, isBinary, hasLatin, isNumber, isUnixTime, isHexColor]);
 
@@ -331,8 +345,8 @@ export const Shell: React.FC<ShellProps> = ({ initialLang }) => {
     <div className="shell min-h-screen flex flex-col bg-primary transition-colors duration-300">
       <header className="h-16 flex items-center justify-between px-6 border-b border-subtle sticky top-0 bg-primary/80 backdrop-blur-lg z-50">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 group cursor-pointer" onClick={() => window.location.reload()}>
-            <div className="w-8 h-8 bg-accent-primary rounded-lg flex items-center justify-center text-white font-bold text-xl">T</div>
+          <div className="flex items-center gap-2 group cursor-pointer" onClick={() => window.location.href = lang === 'ja' ? '/' : '/en/'}>
+            <img src="/icon.webp" alt="TextFlow Logo" className="w-8 h-8 rounded-lg object-cover" />
             <span className="font-bold text-xl tracking-tight hidden sm:block">TextFlow</span>
           </div>
         </div>
@@ -367,13 +381,13 @@ export const Shell: React.FC<ShellProps> = ({ initialLang }) => {
             {AI_Suggestions.length > 0 && (
               <div className="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2 animate-fade-in">
                 {AI_Suggestions.map((sug) => (
-                  <button 
-                    key={sug.id} 
-                    onClick={() => { setCurrentToolId(sug.id); handleTransform(sug.id); }} 
+                  <button
+                    key={sug.id}
+                    onClick={() => { setCurrentToolId(sug.id); handleTransform(sug.id); }}
                     className="flex items-center gap-2 px-4 py-2 bg-accent-primary text-white text-sm rounded-full shadow-lg hover:scale-105 transition-transform flex-shrink-0"
                   >
-                    <Icon.Sparkles className="flex-shrink-0 w-4 h-4 text-white" /> 
-                    <span className="font-bold whitespace-nowrap">{tools.find(t => t.id === sug.id)?.label[lang]}</span> 
+                    <Icon.Sparkles className="flex-shrink-0 w-4 h-4 text-white" />
+                    <span className="font-bold whitespace-nowrap">{tools.find(t => t.id === sug.id)?.label[lang]}</span>
                     <span className="opacity-80 text-xs whitespace-nowrap ml-1">({sug.reason})</span>
                   </button>
                 ))}
@@ -405,7 +419,7 @@ export const Shell: React.FC<ShellProps> = ({ initialLang }) => {
               <div className="mt-4 p-4 rounded-xl bg-secondary border border-subtle text-xs text-tertiary animate-fade-in">
                 <div className="flex items-center justify-between mb-2">
                   <p className="font-bold text-secondary">{currentTool.label[lang]}</p>
-                  <div className="flex gap-1">{currentTool.tags[lang].map(tag => ( <span key={tag} className="px-2 py-0.5 rounded-md bg-tertiary text-[10px] font-medium text-tertiary">{tag}</span> ))}</div>
+                  <div className="flex gap-1">{currentTool.tags[lang].map(tag => (<span key={tag} className="px-2 py-0.5 rounded-md bg-tertiary text-[10px] font-medium text-tertiary">{tag}</span>))}</div>
                 </div>
                 <p className="mb-2">{currentTool.desc[lang]}</p>
               </div>
@@ -429,11 +443,11 @@ export const Shell: React.FC<ShellProps> = ({ initialLang }) => {
                   <div className="flex flex-col items-start min-w-0 flex-1 mr-4 text-left">
                     <div className="flex items-center gap-10 mb-0.5 w-full">
                       <span className={`font-bold truncate flex-shrink-0 ${selectedIndex === index ? 'text-accent-primary' : 'text-primary'}`}>{tool.label[lang]}</span>
-                      <div className="flex gap-1 overflow-hidden">{tool.tags[lang].slice(0, 2).map(tag => ( <span key={tag} className="px-1.5 py-0.5 rounded bg-tertiary text-[9px] text-tertiary whitespace-nowrap">#{tag}</span> ))}</div>
+                      <div className="flex gap-1 overflow-hidden">{tool.tags[lang].slice(0, 2).map(tag => (<span key={tag} className="px-1.5 py-0.5 rounded bg-tertiary text-[9px] text-tertiary whitespace-nowrap">#{tag}</span>))}</div>
                     </div>
                     <span className="text-xs text-tertiary truncate w-full text-left inline-block">{tool.desc[lang]}</span>
                   </div>
-                  {selectedIndex === index && ( <span className="text-[10px] text-accent-primary font-bold uppercase tracking-widest animate-fade-in whitespace-nowrap flex-shrink-0">{lang === 'ja' ? '決定(Enter↵)' : 'Select(Enter↵)'}</span> )}
+                  {selectedIndex === index && (<span className="text-[10px] text-accent-primary font-bold uppercase tracking-widest animate-fade-in whitespace-nowrap flex-shrink-0">{lang === 'ja' ? '決定(Enter↵)' : 'Select(Enter↵)'}</span>)}
                 </button>
               )) : (
                 <div className="p-8 text-center text-tertiary">{t('search.no_results')}</div>
@@ -445,21 +459,21 @@ export const Shell: React.FC<ShellProps> = ({ initialLang }) => {
 
       {showHelp && (
         <div className="fixed inset-0 z-100 flex items-start justify-center pt-20 px-4">
-           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowHelp(false)} />
-           <div className="relative z-10 w-full max-w-md bg-elevated border border-strong rounded-3xl shadow-2xl overflow-hidden animate-fade-in">
-              <div className="p-6 border-b border-subtle flex items-center justify-between">
-                <h3 className="font-bold text-lg">{t('shortcut.help')}</h3>
-                <button onClick={() => setShowHelp(false)} className="p-2 hover:bg-tertiary rounded-full transition-colors"><Icon.X /></button>
-              </div>
-              <div className="p-6 space-y-4">
-                 {[ { key: 'Cmd + K', label: t('shortcut.cmd_k') }, { key: 'Cmd + Enter', label: t('shortcut.cmd_enter') }, { key: 'Shift + C', label: t('shortcut.cmd_shift_c') }, { key: 'Alt + Shift + T', label: t('shortcut.alt_shift_t') }, { key: 'Alt + Shift + L', label: t('shortcut.alt_shift_l') }, { key: '?', label: t('shortcut.help') }, { key: 'Esc', label: t('shortcut.close') }, ].map(s => (
-                   <div key={s.key} className="flex items-center justify-between text-sm">
-                     <span className="text-secondary">{s.label}</span>
-                     <span className="font-mono bg-tertiary px-3 py-1 rounded-lg text-xs font-bold border border-subtle">{s.key}</span>
-                   </div>
-                 ))}
-              </div>
-           </div>
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowHelp(false)} />
+          <div className="relative z-10 w-full max-w-md bg-elevated border border-strong rounded-3xl shadow-2xl overflow-hidden animate-fade-in">
+            <div className="p-6 border-b border-subtle flex items-center justify-between">
+              <h3 className="font-bold text-lg">{t('shortcut.help')}</h3>
+              <button onClick={() => setShowHelp(false)} className="p-2 hover:bg-tertiary rounded-full transition-colors"><Icon.X /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              {[{ key: 'Cmd + K', label: t('shortcut.cmd_k') }, { key: 'Cmd + Enter', label: t('shortcut.cmd_enter') }, { key: 'Shift + C', label: t('shortcut.cmd_shift_c') }, { key: 'Alt + Shift + T', label: t('shortcut.alt_shift_t') }, { key: 'Alt + Shift + L', label: t('shortcut.alt_shift_l') }, { key: '?', label: t('shortcut.help') }, { key: 'Esc', label: t('shortcut.close') },].map(s => (
+                <div key={s.key} className="flex items-center justify-between text-sm">
+                  <span className="text-secondary">{s.label}</span>
+                  <span className="font-mono bg-tertiary px-3 py-1 rounded-lg text-xs font-bold border border-subtle">{s.key}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 

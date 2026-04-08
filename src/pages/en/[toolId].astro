@@ -1,0 +1,23 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { Shell } from "../../components/Shell";
+import { tools } from "../../data/tools";
+
+export function getStaticPaths() {
+  return tools.map((tool) => ({
+    params: { toolId: tool.id },
+    props: { tool },
+  }));
+}
+
+const { toolId } = Astro.params;
+const { tool } = Astro.props;
+
+const lang = "en";
+const title = `${tool.label[lang]} Conversion - ${tool.desc[lang]} - TextFlow`;
+const description = `Online ${tool.label[lang]} conversion tool. ${tool.desc[lang]}. Free, fast, and no registration required.`;
+---
+
+<Layout title={title} description={description} lang={lang}>
+  <Shell initialLang={lang} initialToolId={toolId as any} client:load />
+</Layout>

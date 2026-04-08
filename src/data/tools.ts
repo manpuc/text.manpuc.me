@@ -1,7 +1,7 @@
 
-export type ToolId = 
+export type ToolId =
   | 'upper' | 'lower' | 'title' | 'sentence' | 'alternating' | 'reverse' | 'initials'
-  | 'full-width' | 'half-width' | 'hiragana' | 'katakana' | 'romaji' | 'half-katakana' 
+  | 'full-width' | 'half-width' | 'hiragana' | 'katakana' | 'romaji' | 'half-katakana'
   | 'from-half-katakana' | 'half-katakana-to-hiragana'
   | 'slug' | 'camel' | 'snake' | 'pascal' | 'kebab'
   | 'upper-camel' | 'lower-camel' | 'upper-snake' | 'lower-snake' | 'upper-kebab' | 'lower-kebab'
