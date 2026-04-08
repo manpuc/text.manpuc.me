@@ -1,18 +1,42 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { Shell } from "../components/Shell";
 ---
 
-<Layout title="Debug Page" lang="ja">
-  <div class="p-8">
-    <h1 class="text-2xl font-bold mb-4">Debug Environment</h1>
-    <div class="bg-secondary p-6 rounded-2xl border border-subtle">
-      <p class="text-tertiary">
-        All components are now consolidated into the Shell component.
-      </p>
-      <a href="/" class="mt-4 inline-block text-accent-primary hover:underline"
-        >← Take me home</a
-      >
-    </div>
+<Layout title="Debug Conversion" lang="ja">
+  <div class="p-10 space-y-4">
+    <h1 class="text-2xl font-bold">Kuroshiro Debug</h1>
+    <textarea id="input" class="w-full p-4 border" placeholder="Type kanji here..."></textarea>
+    <button id="test-btn" class="px-6 py-2 bg-blue-600 text-white rounded">Test Conversion</button>
+    <pre id="output" class="p-4 bg-gray-100 rounded min-h-10"></pre>
+    <pre id="logs" class="p-4 bg-black text-green-400 rounded text-xs overflow-auto max-h-60"></pre>
   </div>
+
+  <script>
+    import * as conversions from "../lib/conversions";
+
+    const input = document.getElementById('input') as HTMLTextAreaElement;
+    const btn = document.getElementById('test-btn');
+    const output = document.getElementById('output');
+    const logs = document.getElementById('logs');
+
+    const log = (msg: string) => {
+      console.log(msg);
+      if (logs) logs.textContent += (msg + '\n');
+    };
+
+    btn?.addEventListener('click', async () => {
+      log('Starting test...');
+      try {
+        log('Calling kanjiToHiragana...');
+        const result = await conversions.kanjiToHiragana(input.value || '漢字');
+        log('Result: ' + result);
+    if (output) output.textContent = result || 'No result';
+  } catch (err: any) {
+    log('ERROR: ' + err.message);
+    log('STACK: ' + err.stack);
+  }
+});
+
+log('Debug page ready. Click Test Conversion.');
+</script>
 </Layout>

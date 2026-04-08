@@ -11,8 +11,10 @@ interface ShellProps {
 }
 
 export const Shell: React.FC<ShellProps> = ({ initialLang, initialToolId }) => {
+  console.log('Shell Mount - initialToolId:', initialToolId);
   const [lang, setLang] = useState<'ja' | 'en'>(initialLang);
   const [currentToolId, setCurrentToolId] = useState<ToolId>(initialToolId || 'upper');
+  console.log('Shell Render - currentToolId:', currentToolId);
   const [inputText, setInputText] = useState('');
   const [outputText, setOutputText] = useState('');
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
@@ -25,6 +27,18 @@ export const Shell: React.FC<ShellProps> = ({ initialLang, initialToolId }) => {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const isAutoCategory = React.useRef(true);
   const itemRefs = React.useRef<(HTMLButtonElement | null)[]>([]);
+
+  useEffect(() => {
+    if (initialToolId && currentToolId !== initialToolId) {
+      console.log('Force Syncing ToolId:', initialToolId);
+      setCurrentToolId(initialToolId);
+      const tool = tools.find(t => t.id === initialToolId);
+      if (tool) {
+        setActiveCategory(tool.category);
+        isAutoCategory.current = false;
+      }
+    }
+  }, [initialToolId]);
 
   const t = (key: string) => {
     const keys = key.split('.');
@@ -68,9 +82,23 @@ export const Shell: React.FC<ShellProps> = ({ initialLang, initialToolId }) => {
     setLang(l => (l === 'ja' ? 'en' : 'ja'));
   }, []);
 
+  useEffect(() => {
+    if (currentToolId) {
+      const tool = tools.find(t => t.id === currentToolId);
+      if (tool) {
+        const path = lang === 'ja' ? `/${tool.id}` : `/en/${tool.id}`;
+        if (window.location.pathname !== path) {
+          window.history.pushState(null, '', path);
+        }
+      }
+    }
+  }, [currentToolId, lang]);
+
   // Conversion Logic
-  const getTransformResult = useCallback((toolId: ToolId, text: string) => {
-    switch (toolId) {
+  const getTransformResult = useCallback(async (toolId: ToolId, text: string) => {
+    console.log(`Transforming with tool: ${toolId}`);
+    try {
+      switch (toolId) {
       case 'upper': return conversions.toUpperCase(text);
       case 'lower': return conversions.toLowerCase(text);
       case 'title': return conversions.toTitleCase(text);
@@ -84,6 +112,11 @@ export const Shell: React.FC<ShellProps> = ({ initialLang, initialToolId }) => {
       case 'katakana': return conversions.toKatakana(text);
       case 'half-katakana': return conversions.toHalfKatakana(text);
       case 'romaji': return conversions.toRomaji(text);
+      case 'kanji-to-hiragana': return await conversions.kanjiToHiragana(text);
+      case 'kanji-to-katakana': return await conversions.kanjiToKatakana(text);
+      case 'kanji-to-romaji': return await conversions.kanjiToRomaji(text);
+      case 'romaji-to-hiragana': return conversions.romajiToHiragana(text);
+      case 'romaji-to-katakana': return conversions.romajiToKatakana(text);
       case 'upper-camel': return conversions.toUpperCamelCase(text);
       case 'lower-camel': return conversions.toLowerCamelCase(text);
       case 'upper-snake': return conversions.toUpperSnakeCase(text);
@@ -132,13 +165,19 @@ export const Shell: React.FC<ShellProps> = ({ initialLang, initialToolId }) => {
       case 'code-minify': return conversions.minifyCode(text);
       case 'from-half-katakana': return conversions.fromHalfKatakana(text);
       case 'half-katakana-to-hiragana': return conversions.toHiragana(conversions.fromHalfKatakana(text));
+      case 'filler-remove': return conversions.removeFillers(text);
+      case 'auto-punctuate': return conversions.autoPunctuate(text);
       default: return text;
+    }
+    } catch (err) {
+      console.error('Conversion error:', err);
+      return text;
     }
   }, []);
 
-  const handleTransform = useCallback((customToolId?: ToolId) => {
+  const handleTransform = useCallback(async (customToolId?: ToolId) => {
     const toolId = customToolId || currentToolId;
-    const result = getTransformResult(toolId, inputText);
+    const result = await getTransformResult(toolId, inputText);
     setOutputText(result);
     if (!customToolId) setTotalConversions(prev => prev + 1);
   }, [currentToolId, inputText, getTransformResult]);
@@ -241,6 +280,10 @@ export const Shell: React.FC<ShellProps> = ({ initialLang, initialToolId }) => {
   const hasHtmlTags = /<[^>]*>|&[#a-zA-Z0-9]+;/.test(trimmedInput);
   const isHexColor = /^#([A-Fa-f0-9]{3}){1,2}$/.test(trimmedInput);
   const isUnixTime = /^\d{10}$/.test(trimmedInput) || (/^\d{13}$/.test(trimmedInput));
+  const hasFillers = /(あのー|あの|えーと|えっと|そのー|まー|まあと|\bum\b|\buh\b|\ber\b|\blike\b|\byou know\b|\bi mean\b)/i.test(trimmedInput);
+  const isMissingPunctuation = (hasJapanese && !/[。？！]/.test(trimmedInput) && trimmedInput.length > 10) || (!hasJapanese && hasLatin && !/[.!?]/.test(trimmedInput) && trimmedInput.length > 20);
+  const hasKanji = /[\u4E00-\u9FAF]/.test(trimmedInput);
+  const isPossibleRomaji = hasLatin && !/[^a-zA-Z\s]/.test(trimmedInput) && /(?:[aiueo]{2,}|[ka-sa-ta-na-ha-ma-ya-ra-wa])/i.test(trimmedInput);
 
   useEffect(() => {
     if (commandPaletteOpen && itemRefs.current[selectedIndex]) {
@@ -249,12 +292,17 @@ export const Shell: React.FC<ShellProps> = ({ initialLang, initialToolId }) => {
   }, [selectedIndex, commandPaletteOpen]);
 
   useEffect(() => {
-    if (inputText) {
-      const result = getTransformResult(currentToolId, inputText);
-      setOutputText(result);
-    } else {
-      setOutputText('');
-    }
+    let active = true;
+    const run = async () => {
+      if (inputText) {
+        const result = await getTransformResult(currentToolId, inputText);
+        if (active) setOutputText(result);
+      } else {
+        if (active) setOutputText('');
+      }
+    };
+    run();
+    return () => { active = false; };
   }, [inputText, currentToolId, getTransformResult]);
 
 
@@ -269,8 +317,10 @@ export const Shell: React.FC<ShellProps> = ({ initialLang, initialToolId }) => {
       const hasJp = /[\u3000-\u303F\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF\u4E00-\u9FAF]/.test(txt);
       const isN = /^\d+(\.\d+)?$/.test(txt);
       const isU = /^\d{10}$/.test(txt) || (/^\d{13}$/.test(txt));
+      const hasF = /(あのー|あの|えーと|えっと|そのー)/.test(txt);
 
-      if (isJ || isH || hasH || isC) setActiveCategory('code');
+      if (hasF) setActiveCategory('transcribe');
+      else if (isJ || isH || hasH || isC) setActiveCategory('code');
       else if (hasJp) setActiveCategory('kana');
       else if (isN || isU) setActiveCategory('encode');
       else if (txt.split('\n').length > 1) setActiveCategory('organize');
@@ -317,6 +367,10 @@ export const Shell: React.FC<ShellProps> = ({ initialLang, initialToolId }) => {
 
     if (isBinary) { suggestions.push({ id: 'binary-decode', reason: t('ai.reason.base64') }); }
     if (/[ \t]{2,}/.test(inputText)) { suggestions.push({ id: 'whitespace', reason: t('ai.reason.whitespace') }); }
+    if (hasFillers) { suggestions.push({ id: 'filler-remove', reason: t('ai.reason.filler') }); }
+    if (isMissingPunctuation) { suggestions.push({ id: 'auto-punctuate', reason: t('ai.reason.punctuation') }); }
+    if (hasKanji) { suggestions.push({ id: 'kanji-to-hiragana', reason: t('ai.reason.kanji') }); }
+    if (isPossibleRomaji) { suggestions.push({ id: 'romaji-to-hiragana', reason: t('ai.reason.romaji') }); }
 
     return suggestions.slice(0, 3);
   }, [inputText, lang, trimmedInput, isJson, isHtml, hasHtmlTags, isBase64, isUrlEncoded, isBinary, hasLatin, isNumber, isUnixTime, isHexColor]);
@@ -332,6 +386,7 @@ export const Shell: React.FC<ShellProps> = ({ initialLang, initialToolId }) => {
         case 'kana': return hasJapanese || hasKatakana || hasHalfKatakana || hasHiragana;
         case 'code': return isCode || isJson || isHtml || hasHtmlTags || hasSpaces;
         case 'organize': return hasNewlines || hasSpaces;
+        case 'transcribe': return hasJapanese || hasFillers || isMissingPunctuation;
         case 'encode': return true;
         default: return true;
       }
@@ -396,7 +451,7 @@ export const Shell: React.FC<ShellProps> = ({ initialLang, initialToolId }) => {
           </div>
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none no-scrollbar">
-              {['all', 'case', 'width', 'kana', 'code', 'organize', 'encode'].map(cat => (
+              {['all', 'transcribe', 'case', 'width', 'kana', 'code', 'organize', 'encode'].map(cat => (
                 <button key={cat} onClick={() => { setActiveCategory(cat); isAutoCategory.current = false; }} className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${activeCategory === cat ? 'bg-accent-primary text-white' : 'bg-secondary text-tertiary hover:bg-tertiary'}`}>{t(`category.${cat}`)}</button>
               ))}
             </div>

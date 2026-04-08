@@ -13,17 +13,23 @@ export type ToolId =
   | 'num-to-bin' | 'num-to-hex' | 'num-to-oct' | 'bin-to-num' | 'hex-to-num' | 'num-to-kanji' | 'num-to-frac'
   | 'unix-time' | 'from-unix' | 'nfc' | 'nfd'
   | 'caesar' | 'rot13' | 'atbash' | 'md5' | 'sha256'
-  | 'strike' | 'slanted';
+  | 'strike' | 'slanted' | 'filler-remove' | 'auto-punctuate'
+  | 'kanji-to-hiragana' | 'kanji-to-katakana' | 'kanji-to-romaji'
+  | 'romaji-to-hiragana' | 'romaji-to-katakana';
 
 export interface ToolDef {
   id: ToolId;
   label: { ja: string; en: string };
   desc: { ja: string; en: string };
-  category: 'case' | 'width' | 'kana' | 'code' | 'organize' | 'encode';
+  category: 'case' | 'width' | 'kana' | 'code' | 'organize' | 'encode' | 'transcribe';
   tags: { ja: string[]; en: string[] };
 }
 
 export const tools: ToolDef[] = [
+  // --- TRANSCRIBE / AI ---
+  { id: 'filler-remove', label: { ja: 'フィラー除去', en: 'Remove Fillers' }, desc: { ja: '「あの」「えーと」などの無駄な言葉を削除します', en: 'Remove um, uh, and Japanese fillers' }, category: 'transcribe', tags: { ja: ['会話', '文字起こし'], en: ['Transcription', 'Speech'] } },
+  { id: 'auto-punctuate', label: { ja: '句読点自動挿入', en: 'Auto Punctuate' }, desc: { ja: '句読点のない文章に自動で句読点を追加します', en: 'Automatically add punctuation to text' }, category: 'transcribe', tags: { ja: ['文章', '補完'], en: ['Text', 'Helper'] } },
+
   // --- CASE ---
   { id: 'upper', label: { ja: '大文字', en: 'UPPERCASE' }, desc: { ja: 'すべてを大文字に変換します', en: 'Convert to ALL UPPERCASE' }, category: 'case', tags: { ja: ['アルファベット', '英文'], en: ['Alphabet', 'English'] } },
   { id: 'lower', label: { ja: '小文字', en: 'lowercase' }, desc: { ja: 'すべてを小文字に変換します', en: 'Convert to all lowercase' }, category: 'case', tags: { ja: ['アルファベット', '英文'], en: ['Alphabet', 'English'] } },
@@ -39,6 +45,11 @@ export const tools: ToolDef[] = [
   { id: 'hiragana', label: { ja: 'ひらがな', en: 'Hiragana' }, desc: { ja: 'カタカナをひらがなに戻します', en: 'Katakana to Hiragana' }, category: 'kana', tags: { ja: ['カタカナ', 'ひらがな'], en: ['Katakana', 'Hiragana'] } },
   { id: 'katakana', label: { ja: 'カタカナ', en: 'Katakana' }, desc: { ja: 'ひらがなをカタカナにします', en: 'Hiragana to Katakana' }, category: 'kana', tags: { ja: ['ひらがな', 'カタカナ'], en: ['Hiragana', 'Katakana'] } },
   { id: 'romaji', label: { ja: 'ローマ字', en: 'Romaji' }, desc: { ja: 'カナをローマ字に変換します', en: 'Kana to Romaji' }, category: 'kana', tags: { ja: ['日本語', 'ローマ字'], en: ['Japanese', 'Romaji'] } },
+  { id: 'kanji-to-hiragana', label: { ja: '漢字→ひらがな', en: 'Kanji to Hiragana' }, desc: { ja: '漢字の読みをひらがなで出力します', en: 'Extract Hiragana from Kanji' }, category: 'kana', tags: { ja: ['漢字', '読み'], en: ['Kanji', 'Reading'] } },
+  { id: 'kanji-to-katakana', label: { ja: '漢字→カタカナ', en: 'Kanji to Katakana' }, desc: { ja: '漢字の読みをカタカナで出力します', en: 'Extract Katakana from Kanji' }, category: 'kana', tags: { ja: ['漢字', '読み'], en: ['Kanji', 'Reading'] } },
+  { id: 'kanji-to-romaji', label: { ja: '漢字→ローマ字', en: 'Kanji to Romaji' }, desc: { ja: '漢字の読みをローマ字で出力します', en: 'Extract Romaji from Kanji' }, category: 'kana', tags: { ja: ['漢字', '読み'], en: ['Kanji', 'Reading'] } },
+  { id: 'romaji-to-hiragana', label: { ja: 'ローマ字→ひらがな', en: 'Romaji to Hiragana' }, desc: { ja: 'ローマ字を日本語（ひらがな）にします', en: 'Convert Romaji to Hiragana' }, category: 'kana', tags: { ja: ['ローマ字', 'ひらがな'], en: ['Romaji', 'Hiragana'] } },
+  { id: 'romaji-to-katakana', label: { ja: 'ローマ字→カタカナ', en: 'Romaji to Katakana' }, desc: { ja: 'ローマ字を日本語（カタカナ）にします', en: 'Convert Romaji to Katakana' }, category: 'kana', tags: { ja: ['ローマ字', 'カタカナ'], en: ['Romaji', 'Katakana'] } },
   { id: 'half-katakana', label: { ja: '半角カナ', en: 'Half Katakana' }, desc: { ja: 'カナを半角にします', en: 'Kana to Half-width' }, category: 'kana', tags: { ja: ['カナ', '半角'], en: ['Kana', 'Half-width'] } },
   { id: 'from-half-katakana', label: { ja: '半角→全角カナ', en: 'Half → Full Katakana' }, desc: { ja: '半角カタカナを全角カタカナに変換します', en: 'Convert Half-width Katakana to Full-width' }, category: 'kana', tags: { ja: ['半角カナ', '全角'], en: ['Half-width', 'Full-width'] } },
   { id: 'half-katakana-to-hiragana', label: { ja: '半角カナ→ひらがな', en: 'Half → Hiragana' }, desc: { ja: '半角カタカナをひらがなに変換します', en: 'Convert Half-width Katakana to Hiragana' }, category: 'kana', tags: { ja: ['半角カナ', 'ひらがな'], en: ['Half-width', 'Hiragana'] } },

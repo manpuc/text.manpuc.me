@@ -59,6 +59,10 @@ export const ui = {
         duplicate: 'Contains duplicate lines.',
         whitespace: 'Contains extra whitespace.',
         time: 'Looks like a UNIX timestamp.',
+        filler: 'Contains conversation fillers.',
+        punctuation: 'Missing punctuation or commas.',
+        kanji: 'Contains kanji to extract reading.',
+        romaji: 'Looks like Romaji to convert.',
       }
     },
     category: {
@@ -69,6 +73,7 @@ export const ui = {
       code: 'CODE',
       organize: 'ORGANIZE',
       encode: 'ENCODE',
+      transcribe: 'TRANSCRIBE',
     }
   },
   ja: {
@@ -123,16 +128,21 @@ export const ui = {
         duplicate: '重複した行が含まれています。',
         whitespace: '余分な空白が含まれています。',
         time: 'UNIXタイムスタンプのようです。',
+        filler: '会話のフィラー（あのー、えーと等）が含まれています。',
+        punctuation: '句読点が不足しているようです。',
+        kanji: '漢字の読み（ふりがな）を抽出できます。',
+        romaji: 'ローマ字を日本語に変換できます。',
       }
     },
     category: {
-      all: 'ALL',
+      all: 'すべて',
       case: 'CASE',
       width: 'WIDTH',
       kana: 'KANA',
       code: 'CODE',
-      organize: 'ORGANIZE',
-      encode: 'ENCODE',
+      organize: '整理',
+      encode: '変換',
+      transcribe: '書き起こし',
     }
   },
 } as const;

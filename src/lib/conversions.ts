@@ -1,7 +1,74 @@
+import * as wanakana from 'wanakana';
+// --- Kuroshiro Initialization ---
+let kuro: any = null;
+let kuroReady = false;
+let kuroInitializing = false;
 
-/**
- * Conversion logic for text tools.
- */
+export const initKuro = async () => {
+  if (kuroReady && kuro) return;
+  if (kuroInitializing) {
+    while (kuroInitializing) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    return;
+  }
+  kuroInitializing = true;
+  console.log('Initializing Kuroshiro conversion system...');
+  
+  // Inject path polyfill for kuromoji-js in browser
+  if (typeof window !== 'undefined' && !(window as any).path) {
+    console.log('Injecting path polyfill');
+    const path = await import('path-browserify');
+    (window as any).path = path.default || path;
+  }
+  
+  console.log('Importing kuroshiro modules');
+  const KuroMod = await import('kuroshiro');
+  const AnalyzerMod = await import('kuroshiro-analyzer-kuromoji');
+  
+  // High-reliability class resolution
+  const resolveClass = (mod: any) => {
+    if (typeof mod === 'function') return mod;
+    if (mod.default && typeof mod.default === 'function') return mod.default;
+    if (mod.default?.default && typeof mod.default.default === 'function') return mod.default.default;
+    return mod;
+  };
+
+  const KC = resolveClass(KuroMod);
+  const AC = resolveClass(AnalyzerMod);
+
+  if (typeof KC !== 'function' || typeof AC !== 'function') {
+    throw new Error(`Failed to resolve Kuroshiro or Analyzer classes. KC: ${typeof KC}, AC: ${typeof AC}`);
+  }
+
+  try {
+    // Monkey patch XHR to redirect .gz requests to .gz.bin to bypass Vite auto-decompression
+    if (typeof window !== 'undefined' && !(window as any)._xhrPatched) {
+      const oldOpen = window.XMLHttpRequest.prototype.open;
+      window.XMLHttpRequest.prototype.open = function(method: string, url: string | URL) {
+        let finalUrl = url.toString();
+        if (finalUrl.includes('kuromoji-data') && finalUrl.endsWith('.gz')) {
+          finalUrl += '.bin';
+          console.log('Redirecting dict request:', url, '->', finalUrl);
+        }
+        return oldOpen.apply(this, [method, finalUrl, ...Array.prototype.slice.call(arguments, 2)] as any);
+      };
+      (window as any)._xhrPatched = true;
+    }
+
+    kuro = new KC();
+    console.log('Kuroshiro instantiated');
+    const dictPath = '/kuromoji-data';
+    await kuro.init(new AC({ dictPath }));
+    kuroReady = true;
+    console.log('Kuroshiro system ready at ' + dictPath);
+  } catch (err) {
+    console.error('Kuroshiro initialization failed:', err);
+    throw err;
+  } finally {
+    kuroInitializing = false;
+  }
+};
 
 // --- Base Case Conversions ---
 export const toUpperCase = (text: string) => text.toUpperCase();
@@ -22,26 +89,36 @@ export const toLowerKebabCase = (text: string) => text.match(/[A-Z]{2,}(?=[A-Z][
 // --- Width / Kana Conversions ---
 export const toFullWidth = (text: string) => text.replace(/[!-~]/g, c => String.fromCharCode(c.charCodeAt(0) + 0xFEE0)).replace(/ /g, '\u3000');
 export const toHalfWidth = (text: string) => text.replace(/[\uFF01-\uFF5E]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/\u3000/g, ' ');
-export const toHiragana = (text: string) => text.replace(/[\u30A1-\u30F6]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
-export const toKatakana = (text: string) => text.replace(/[\u3041-\u3096]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60));
+
+export const toHiragana = (text: string) => wanakana.toHiragana(text);
+export const toKatakana = (text: string) => wanakana.toKatakana(text);
+export const toRomaji = (text: string) => wanakana.toRomaji(text);
+export const romajiToHiragana = (text: string) => wanakana.toHiragana(text);
+export const romajiToKatakana = (text: string) => wanakana.toKatakana(text);
+
+export const kanjiToHiragana = async (text: string) => {
+  await initKuro();
+  return kuro.convert(text, { to: 'hiragana' });
+};
+
+export const kanjiToKatakana = async (text: string) => {
+  await initKuro();
+  return kuro.convert(text, { to: 'katakana' });
+};
+
+export const kanjiToRomaji = async (text: string) => {
+  await initKuro();
+  return kuro.convert(text, { to: 'romaji' });
+};
 
 const HK_MAP: any = { 'ガ': 'ｶﾞ', 'ギ': 'ｷﾞ', 'グ': 'ｸﾞ', 'ゲ': 'ｹﾞ', 'ゴ': 'ｺﾞ', 'ザ': 'ｻﾞ', 'ジ': 'ｼﾞ', 'ズ': 'ｽﾞ', 'ゼ': 'ｾﾞ', 'ゾ': 'ｿﾞ', 'ダ': 'ﾀﾞ', 'ヂ': 'ﾁﾞ', 'ヅ': 'ﾂﾞ', 'デ': 'ﾃﾞ', 'ド': 'ﾄﾞ', 'バ': 'ﾊﾞ', 'ビ': 'ﾋﾞ', 'ブ': 'ﾌﾞ', 'ベ': 'ﾍﾞ', 'ボ': 'ﾎﾞ', 'パ': 'ﾊﾟ', 'ピ': 'ﾋﾟ', 'プ': 'ﾌﾟ', 'ペ': 'ﾍﾟ', 'ポ': 'ﾎﾟ', 'ア': 'ｱ', 'イ': 'ｲ', 'ウ': 'ｳ', 'エ': 'ｴ', 'オ': 'ｵ', 'カ': 'ｶ', 'キ': 'ｷ', 'ク': 'ｸ', 'ケ': 'ｹ', 'コ': 'ｺ', 'サ': 'ｻ', 'シ': 'ｼ', 'ス': 'ｽ', 'セ': 'ｾ', 'ソ': 'ｿ', 'タ': 'ﾀ', 'チ': 'ﾁ', 'ツ': 'ﾂ', 'テ': 'ﾃ', 'ト': 'ﾄ', 'ナ': 'ﾅ', 'ニ': 'ﾆ', 'ヌ': 'ﾇ', 'ネ': 'ﾈ', 'ノ': 'ﾉ', 'ハ': 'ﾊ', 'ヒ': 'ﾋ', 'フ': 'ﾌ', 'ヘ': 'ﾍ', 'ホ': 'ﾎ', 'マ': 'ﾏ', 'ミ': 'ﾐ', 'ム': 'ﾑ', 'メ': 'ﾒ', 'モ': 'ﾓ', 'ヤ': 'ﾔ', 'ユ': 'ﾕ', 'ヨ': 'ﾖ', 'ラ': 'ﾗ', 'リ': 'ﾘ', 'ル': 'ﾙ', 'レ': 'ﾚ', 'ロ': 'ﾛ', 'ワ': 'ﾜ', 'ヲ': 'ｦ', 'ン': 'ﾝ', 'ァ': 'ｧ', 'ィ': 'ｨ', 'ゥ': 'ｩ', 'ェ': 'ｪ', 'ォ': 'ｫ', 'ッ': 'ｯ', 'ャ': 'ｬ', 'ュ': 'ｭ', 'ョ': 'ｮ', 'ー': 'ｰ', '。': '｡', '「': '｢', '」': '｣', '、': '､', '・': '･' };
-export const toHalfKatakana = (text: string) => toKatakana(text).replace(/[ァ-ヶー。、「」、・]/g, m => HK_MAP[m] || m);
+export const toHalfKatakana = (text: string) => wanakana.toKatakana(text).replace(/[ァ-ヶー。、「」、・]/g, m => HK_MAP[m] || m);
 
 export const fromHalfKatakana = (text: string) => {
-  const mapping: any = { 'ｶﾞ': 'ガ', 'ｷﾞ': 'ギ', 'ｸﾞ': 'グ', 'ｹﾞ': 'ゲ', 'ｺﾞ': 'ゴ', 'ｻﾞ': 'ザ', 'ｼﾞ': 'ジ', 'ｽﾞ': 'ズ', 'ｾﾞ': 'ゼ', 'ｿﾞ': 'ゾ', 'ﾀﾞ': 'ダ', 'ﾁﾞ': 'ヂ', 'ﾂﾞ': 'ヅ', 'ﾃﾞ': 'デ', 'ﾄﾞ': 'ド', 'ﾊﾞ': 'バ', 'ﾋﾞ': 'ビ', 'ﾌﾞ': 'ブ', 'ﾍﾞ': 'ベ', 'ﾎﾞ': 'ボ', 'ﾊﾟ': 'パ', 'ﾋﾟ': 'ピ', 'ﾌﾟ': 'プ', 'ﾍﾟ': 'ペ', 'ﾎﾟ': 'ポ', 'ｱ': 'ア', 'ｲ': 'イ', 'ｳ': 'ウ', 'ｴ': 'エ', 'ｵ': 'オ', 'ｶ': 'カ', 'ｷ': 'キ', 'ｸ': 'ク', 'ｹ': 'ケ', 'ｺ': 'コ', 'ｻ': 'サ', 'ｼ': 'シ', 'ｽ': 'ス', 'ｾ': 'セ', 'ｿ': 'ソ', 'ﾀ': 'タ', 'チ': 'チ', 'ﾂ': 'ツ', 'ﾃ': 'テ', 'ト': 'ト', 'ﾅ': 'ナ', 'ﾆ': 'ニ', 'ﾇ': 'ヌ', 'ﾈ': 'ネ', 'ﾉ': 'ノ', 'ﾊ': 'ハ', 'ﾋ': 'ヒ', 'ﾌ': 'フ', 'ﾍ': 'ヘ', 'ﾎ': 'ホ', 'ﾏ': 'マ', 'ﾐ': 'ミ', 'ム': 'ム', 'ﾒ': 'メ', 'ﾓ': 'モ', 'ﾔ': 'ヤ', 'ﾕ': 'ユ', 'ﾖ': 'ヨ', 'ﾗ': 'ラ', 'リ': 'リ', 'ﾙ': 'ル', 'ﾚ': 'レ', 'ﾛ': 'ロ', 'ﾜ': 'ワ', 'ｦ': 'ヲ', 'ン': 'ン', 'ｧ': 'ァ', 'ｨ': 'ィ', 'ｩ': 'ゥ', 'ｪ': 'ェ', 'ｫ': 'ォ', 'ｯ': 'ッ', 'ｬ': 'ャ', 'ュ': 'ュ', 'ｮ': 'ョ', 'ｰ': 'ー', '｡': '。', '｢': '「', '｣': '」', '､': '、', '･': '・' };
+  const mapping: any = { 'ｶﾞ': 'ガ', 'ｷﾞ': 'ギ', 'ｸﾞ': 'グ', 'ｹﾞ': 'ゲ', 'ｺﾞ': 'ゴ', 'ｻﾞ': 'ザ', 'ｼﾞ': 'ジ', 'ｽﾞ': 'ズ', 'ｾﾞ': 'ゼ', 'ｿﾞ': 'ゾ', 'ﾀﾞ': 'ダ', 'ﾁﾞ': 'ヂ', 'ﾂﾞ': 'ヅ', 'ﾃﾞ': 'デ', 'ﾄﾞ': 'ド', 'ﾊﾞ': 'バ', 'ﾋﾞ': 'ビ', 'ﾌﾞ': 'ブ', 'ﾍﾞ': 'ベ', 'ﾎﾞ': 'ボ', 'ﾊﾟ': 'パ', 'ﾋﾟ': 'ピ', 'ﾌﾟ': 'プ', 'ﾍﾟ': 'ペ', 'ﾎﾟ': 'ポ', 'ｱ': 'ア', 'ｲ': 'イ', 'ｳ': 'ウ', 'ｴ': 'エ', 'ｵ': 'オ', 'ｶ': 'カ', 'ｷ': 'キ', 'ｸ': 'ク', 'ｹ': 'ケ', 'ｺ': 'コ', 'ｻ': 'サ', 'ｼ': 'シ', 'ｽ': 'ス', 'ｾ': 'セ', 'ｿ': 'ソ', 'ﾀ': 'タ', 'チ': 'チ', 'ツ': 'ツ', 'ﾃ': 'テ', 'ト': 'ト', 'ﾅ': 'ナ', 'ﾆ': 'ニ', 'ヌ': 'ヌ', 'ネ': 'ネ', 'ﾉ': 'ノ', 'ﾊ': 'ハ', 'ヒ': 'ヒ', 'フ': 'フ', 'ﾍ': 'ヘ', 'ﾎ': 'ホ', 'ﾏ': 'マ', 'ミ': 'ミ', 'ム': 'ム', 'ﾒ': 'メ', 'モ': 'モ', 'ヤ': 'ヤ', 'ユ': 'ユ', 'ヨ': 'ヨ', 'ラ': 'ラ', 'リ': 'リ', 'る': 'る', 'れ': 'れ', 'ろ': 'ろ', 'わ': 'ワ', 'ヲ': 'ヲ', 'ン': 'ン', 'ｧ': 'ァ', 'ｨ': 'ィ', 'ｩ': 'ゥ', 'ｪ': 'ェ', 'ｫ': 'ォ', 'ｯ': 'ッ', 'ｬ': 'ャ', 'ュ': 'ュ', 'ｮ': 'ョ', 'ｰ': 'ー', '｡': '。', '｢': '「', '｣': '」', '､': '、', '･': '・' };
   let result = text;
   Object.keys(mapping).sort((a, b) => b.length - a.length).forEach(k => result = result.split(k).join(mapping[k]));
   return result;
-};
-
-export const toRomaji = (text: string) => {
-  const unified = toHiragana(text);
-  const map: any = {
-    'あ': 'a', 'い': 'i', 'う': 'u', 'え': 'e', 'お': 'o', 'か': 'ka', 'き': 'ki', 'く': 'ku', 'け': 'ke', 'こ': 'ko', 'さ': 'sa', 'し': 'shi', 'す': 'su', 'せ': 'se', 'そ': 'so', 'た': 'ta', 'ち': 'chi', 'つ': 'tsu', 'て': 'te', 'と': 'to', 'な': 'na', 'に': 'ni', 'ぬ': 'nu', 'ね': 'ne', 'の': 'no', 'は': 'ha', 'ひ': 'hi', 'ふ': 'fu', 'へ': 'he', 'ほ': 'ho', 'ま': 'ma', 'み': 'mi', 'む': 'mu', 'め': 'me', 'モ': 'mo', 'や': 'ya', 'ゆ': 'yu', 'よ': 'yo', 'ら': 'ra', 'リ': 'ri', 'る': 'ru', 'れ': 're', 'ろ': 'ro', 'わ': 'wa', 'を': 'o', 'ん': 'n',
-    'が': 'ga', 'ぎ': 'gi', 'ぐ': 'gu', 'げ': 'ge', 'ご': 'go', 'ざ': 'za', 'じ': 'ji', 'ず': 'zu', 'ぜ': 'ze', 'ぞ': 'zo', 'だ': 'da', 'ぢ': 'ji', 'づ': 'zu', 'で': 'de', 'ど': 'do', 'ば': 'ba', 'び': 'bi', 'ぶ': 'bu', 'べ': 'be', 'ぼ': 'bo', 'ぱ': 'pa', 'ぴ': 'pi', 'ぷ': 'pu', 'ぺ': 'pe', 'ぽ': 'po'
-  };
-  return unified.replace(/っ([a-zあ-ん])/g, (m, c) => (map[c] || c)[0] + c).split('').map(c => map[c] || c).join('');
 };
 
 // --- Numbers ---
@@ -196,3 +273,54 @@ export const toKanjiNum = (s: string) => {
 
 export const removeAllNewlines = (s: string) => s.replace(/\n/g, '');
 export const removeAllWhitespace = (s: string) => s.replace(/\s/g, '');
+
+// --- Transcription / AI Helper Conversions ---
+export const removeFillers = (s: string) => {
+  const jpFillers = ['あのー', 'あの', 'えーと', 'えっと', 'そのー', 'その', 'まあ', 'まー', 'えー', 'うーん', 'うーんと', 'えーっと', 'あー', 'はぁ'];
+  const enFillers = ['um', 'uh', 'er', 'ah', 'like', 'you know', 'i mean'];
+
+  let res = s;
+
+  // Japanese fillers
+  jpFillers.forEach(f => {
+    const regex = new RegExp(`(^|\\s|、|。)${f}(\\s|、|。|$)`, 'g');
+    res = res.replace(regex, (match, p1, p2) => p1 + p2);
+  });
+
+  // English fillers (case insensitive, word boundary)
+  enFillers.forEach(f => {
+    const regex = new RegExp(`\\b${f}\\b`, 'gi');
+    res = res.replace(regex, '');
+  });
+
+  return res.replace(/\s+/g, ' ').replace(/^[、。,\.]/, '').trim();
+};
+
+export const autoPunctuate = (s: string) => {
+  let res = s.trim();
+  if (!res) return '';
+
+  const hasJapanese = /[\u3000-\u303F\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF\u4E00-\u9FAF]/.test(res);
+
+  const lines = res.split('\n').map(line => {
+    let l = line.trim();
+    if (!l) return '';
+
+    if (hasJapanese) {
+      // Japanese logic
+      if (!/[。？！?!.]$/.test(l)) l += '。';
+      l = l.replace(/([はがを])(?![、。？！?!.])/g, '$1、');
+    } else {
+      // English logic
+      // Capitalize first letter
+      l = l.charAt(0).toUpperCase() + l.slice(1);
+      // Add period if missing
+      if (!/[.!?]$/.test(l)) l += '.';
+      // Capitalize after periods within the line
+      l = l.replace(/([.!?]\s+)([a-z])/g, (m, p1, p2) => p1 + p2.toUpperCase());
+    }
+    return l;
+  });
+
+  return lines.join('\n');
+};
