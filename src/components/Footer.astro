@@ -1,0 +1,113 @@
+---
+import { tools } from "../data/tools";
+
+interface Props {
+  lang: "en" | "ja";
+  showLinks?: boolean;
+}
+
+const { lang = "ja", showLinks = true } = Astro.props;
+
+const categories = [
+  "transcribe",
+  "case",
+  "width",
+  "kana",
+  "code",
+  "organize",
+  "encode",
+];
+const t = {
+  ja: {
+    madeBy: "Made with ❤️ by",
+    categories: "ツールカテゴリー",
+    aboutTitle: "TextFlowについて",
+    aboutText:
+      "TextFlowは、開発者やクリエイター、そして効率を求めるすべての人のためのテキスト加工ツール集です。データはすべてブラウザ内で処理されるため、安全かつ高速に利用いただけます。",
+  },
+  en: {
+    madeBy: "Made with ❤️ by",
+    categories: "Categories",
+    aboutTitle: "About TextFlow",
+    aboutText:
+      "TextFlow is a collection of text processing tools for developers, creators, and productivity seekers. All data is processed locally in your browser, ensuring privacy and speed.",
+  },
+}[lang];
+---
+
+<footer
+  class="bg-secondary/30 border-t border-subtle mt-16 pt-16 pb-8 px-4 sm:px-6"
+>
+  <div class="max-w-[1600px] mx-auto w-full">
+    {/* Brand Section at the top of the footer area */}
+    <div class="flex items-center gap-3 mb-8">
+      <img
+        src="/icon.webp"
+        alt="TextFlow Logo"
+        class="w-8 h-8 rounded-lg object-cover"
+      />
+      <span class="font-bold text-lg tracking-tight">TextFlow</span>
+      <span class="text-tertiary text-xs ml-2 hidden sm:inline"
+        >{t.aboutText}</span
+      >
+    </div>
+
+    {/* Dynamic Content Slot (SEO descriptions, related tools, etc.) */}
+    <div class="mb-12">
+      <slot />
+    </div>
+
+    {/* Absolute Bottom Bar */}
+    <div class="pt-8 border-t border-subtle/50 flex justify-center pb-4">
+      <a
+        href="https://manpuc.me"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="group flex items-center gap-1.5 no-underline text-[11px] transition-all duration-300 hover:scale-105 active:scale-95"
+      >
+        <span class="text-tertiary flex items-center gap-1.5">
+          Made with <span
+            class="heart text-error inline-block transform transition-transform group-hover:scale-125"
+            >❤️</span
+          > by
+        </span>
+        <span
+          class="font-bold text-secondary group-hover:text-accent-primary transition-colors relative"
+        >
+          manpuc
+          <span
+            class="absolute -bottom-1 left-0 w-0 h-[1px] bg-accent-primary transition-all duration-300 group-hover:w-full"
+          ></span>
+        </span>
+      </a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .heart {
+    display: inline-block;
+  }
+
+  .group:hover .heart {
+    animation: heartBeat 0.8s ease-in-out infinite;
+  }
+
+  @keyframes heartBeat {
+    0% {
+      transform: scale(1);
+    }
+    14% {
+      transform: scale(1.3);
+    }
+    28% {
+      transform: scale(1);
+    }
+    42% {
+      transform: scale(1.3);
+    }
+    70% {
+      transform: scale(1);
+    }
+  }
+</style>

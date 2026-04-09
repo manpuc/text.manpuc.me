@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
 
+# Exclude debug and demo pages
+Disallow: /debug
+Disallow: /mobile-demo
+
 Sitemap: https://text.manpuc.me/sitemap-index.xml

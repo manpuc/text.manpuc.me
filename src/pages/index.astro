@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { Shell } from "../components/Shell";
+import Footer from "../components/Footer.astro";
 import { getLangFromUrl } from "../i18n/utils";
 
 const lang = getLangFromUrl(Astro.url);
@@ -15,5 +16,26 @@ const description =
 ---
 
 <Layout title={title} description={description} lang={lang}>
+  <div class="sr-only">
+    <h1>{title}</h1>
+    <p>{description}</p>
+  </div>
+
   <Shell initialLang={lang} client:load />
+
+  <Footer lang={lang} showLinks={true} />
 </Layout>
+
+<style>
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+</style>

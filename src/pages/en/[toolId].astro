@@ -1,6 +1,7 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import { Shell } from "../../components/Shell";
+import Footer from "../../components/Footer.astro";
 import { tools } from "../../data/tools";
 
 export function getStaticPaths() {
@@ -15,52 +16,118 @@ const { tool } = Astro.props;
 
 const lang = "en";
 const toolName = tool.label[lang];
-const title = `${toolName} Converter｜Free Online Text Tool - TextFlow`;
-const description = `Free online ${toolName} converter. ${tool.desc[lang]}. Fast, secure, and no registration required.`;
+const title = `${toolName} Converter | Free Online Tool - TextFlow`;
+const description = `Easily convert to ${toolName} with our free online tool. ${tool.desc[lang]} No registration required, secure browser-based processing.`;
 
-// Related tools (same category, excluding current)
-const relatedTools = tools
-  .filter((t) => t.category === tool.category && t.id !== toolId)
-  .slice(0, 6);
+// Get related tools from the same category
+const relatedTools = tools.filter(t => t.category === tool.category && t.id !== toolId).slice(0, 4);
 ---
 
 <Layout title={title} description={description} lang={lang}>
-  {/* Additional Structured Data for Breadcrumbs */}
-  <script type="application/ld+json" is:inline set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": Astro.site
-      },
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": toolName,
-        "item": Astro.url.href
-      }
-    ]
-  })} />
+  {/* Structured Data: Combining Breadcrumb and FAQ */}
+  <script type="application/ld+json" is:inline set:html={JSON.stringify([
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": new URL("/en", Astro.site)
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": toolName,
+          "item": Astro.url.href
+        }
+      ]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": `Is the ${toolName} tool free to use?`,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, all tools on TextFlow are completely free to use. No registration or downloads required."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is my input text data safe?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, it is safe. All conversion processing happens locally in your browser, and your input content is never sent to or stored on our servers."
+          }
+        }
+      ]
+    }
+  ])} />
+
+  {/* Hidden H1 for SEO keyword indexing */}
+  <header class="sr-only">
+    <h1>{toolName} Conversion Tool</h1>
+    <p>{description}</p>
+  </header>
 
   <Shell initialLang={lang} initialToolId={toolId as any} client:visible />
 
-  {relatedTools.length > 0 && (
-    <footer class="max-w-6xl mx-auto px-4 py-12 border-t border-gray-200 dark:border-gray-800">
-      <h2 class="text-xl font-bold mb-6 opacity-80">Related Tools</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {relatedTools.map((t) => (
-          <a
-            href={`/en/${t.id}`}
-            class="p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 hover:bg-white dark:hover:bg-gray-800 hover:shadow-lg transition-all duration-200 group"
-          >
-            <div class="font-bold group-hover:text-blue-500 transition-colors">{t.label[lang]}</div>
-            <div class="text-xs opacity-60 mt-1 line-clamp-1">{t.desc[lang]}</div>
-          </a>
-        ))}
-      </div>
-    </footer>
-  )}
+  <Footer lang={lang} showLinks={true}>
+    <div class="grid md:grid-cols-2 gap-12 text-left">
+      <section>
+        <h2 class="text-xl font-bold mb-4">About {toolName} Tool</h2>
+        <p class="text-tertiary leading-relaxed mb-6">
+          TextFlow's {toolName} tool is designed to {tool.desc[lang].toLowerCase()}. 
+          Whether you're a developer working on code, a writer crafting content, or just organizing data, our tools help streamline your workflow.
+          Accessible directly from your browser on any device with no installation required.
+        </p>
+
+        <h3 class="font-bold mb-3 text-sm uppercase tracking-wider text-accent-primary">Why Choose TextFlow</h3>
+        <ul class="space-y-3 text-sm text-tertiary">
+          <li class="flex items-start gap-2">
+            <span class="text-accent-primary font-bold">✓</span>
+            <span><strong>Privacy First:</strong> Data stays in your browser and is never leaked.</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="text-accent-primary font-bold">✓</span>
+            <span><strong>Instant Results:</strong> Real-time transformation as you type.</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="text-accent-primary font-bold">✓</span>
+            <span><strong>Smart Suggestions:</strong> AI analyzes your input to recommend the best tool.</span>
+          </li>
+        </ul>
+      </section>
+
+      <nav aria-label="Related tools">
+        <h2 class="text-xl font-bold mb-4">Related Tools</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {relatedTools.map(t => (
+            <a href={`/en/${t.id}`} class="group p-4 bg-secondary/50 rounded-2xl border border-subtle hover:border-accent-primary hover:bg-accent-subtle/30 transition-all no-underline">
+              <span class="font-bold block text-primary group-hover:text-accent-primary transition-colors">{t.label[lang]}</span>
+              <span class="text-[10px] text-tertiary line-clamp-2 mt-1">{t.desc[lang]}</span>
+            </a>
+          ))}
+        </div>
+      </nav>
+    </div>
+  </Footer>
 </Layout>
+
+<style>
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+</style>

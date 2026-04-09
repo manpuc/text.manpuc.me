@@ -398,27 +398,27 @@ export const Shell: React.FC<ShellProps> = ({ initialLang, initialToolId }) => {
 
   return (
     <div className="shell min-h-screen flex flex-col bg-primary transition-colors duration-300">
-      <header className="h-16 flex items-center justify-between px-6 border-b border-subtle sticky top-0 bg-primary/80 backdrop-blur-lg z-50">
-        <div className="flex items-center gap-4">
+      <header className="h-16 flex items-center justify-between px-3 sm:px-6 border-b border-subtle sticky top-0 bg-primary/80 backdrop-blur-lg z-50">
+        <div className="flex items-center gap-2 sm:gap-4">
           <div className="flex items-center gap-2 group cursor-pointer" onClick={() => window.location.href = lang === 'ja' ? '/' : '/en/'}>
             <img src="/icon.webp" alt="TextFlow Logo" className="w-8 h-8 rounded-lg object-cover" />
             <span className="font-bold text-xl tracking-tight hidden sm:block">TextFlow</span>
           </div>
         </div>
-        <div className="flex-1 max-w-lg mx-6 group relative cursor-pointer" onClick={() => setCommandPaletteOpen(true)}>
-          <div className="w-full h-10 bg-secondary border border-subtle rounded-full flex items-center px-4 text-tertiary gap-3 group-hover:border-strong transition-all">
+        <div className="flex-1 max-w-lg mx-1 sm:mx-6 group relative cursor-pointer" onClick={() => setCommandPaletteOpen(true)}>
+          <div className="w-full h-10 bg-secondary border border-subtle rounded-full flex items-center px-4 text-tertiary gap-2 sm:gap-3 group-hover:border-strong transition-all">
             <Icon.Search />
-            <span className="text-sm truncate">{t('header.search')}</span>
+            <span className="text-sm truncate">{lang === 'ja' ? '検索...' : 'Search...'}</span>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1 sm:gap-3">
           <div className="hidden lg:flex flex-col items-end mr-2">
             <span className="text-[10px] text-tertiary uppercase font-bold tracking-wider">{t('header.conversions')}</span>
             <span className="text-sm font-mono font-medium">{(totalConversions / 1000000).toFixed(1)}M</span>
           </div>
           <button onClick={toggleLang} className="p-2 hover:bg-tertiary rounded-lg text-secondary"><Icon.Globe /></button>
           <button onClick={toggleTheme} className="p-2 hover:bg-tertiary rounded-lg text-secondary">{theme === 'light' ? <Icon.Moon /> : <Icon.Sun />}</button>
-          <button onClick={() => setShowHelp(true)} className="p-2 hover:bg-tertiary rounded-lg text-secondary"><Icon.Help /></button>
+          <button onClick={() => setShowHelp(true)} className="p-2 hover:bg-tertiary rounded-lg text-secondary hidden sm:flex items-center justify-center"><Icon.Help /></button>
         </div>
       </header>
 
@@ -450,12 +450,12 @@ export const Shell: React.FC<ShellProps> = ({ initialLang, initialToolId }) => {
             )}
           </div>
           <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none no-scrollbar">
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none no-scrollbar flex-shrink-0">
               {['all', 'transcribe', 'case', 'width', 'kana', 'code', 'organize', 'encode'].map(cat => (
-                <button key={cat} onClick={() => { setActiveCategory(cat); isAutoCategory.current = false; }} className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${activeCategory === cat ? 'bg-accent-primary text-white' : 'bg-secondary text-tertiary hover:bg-tertiary'}`}>{t(`category.${cat}`)}</button>
+                <button key={cat} onClick={() => { setActiveCategory(cat); isAutoCategory.current = false; }} className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap flex-shrink-0 transition-all ${activeCategory === cat ? 'bg-accent-primary text-white' : 'bg-secondary text-tertiary hover:bg-tertiary'}`}>{t(`category.${cat}`)}</button>
               ))}
             </div>
-            <div className="flex overflow-x-auto pb-2 gap-2 md:grid md:grid-cols-4 lg:grid-cols-4 md:overflow-visible transition-all">
+            <div className="flex overflow-x-auto pb-2 gap-2 md:grid md:grid-cols-4 lg:grid-cols-4 md:overflow-visible transition-all flex-shrink-0">
               {visibleTools.map(tool => (
                 <button key={tool.id} onClick={() => { setCurrentToolId(tool.id); handleTransform(tool.id); }} className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium border transition-all animate-fade-in hover:scale-105 active:scale-95 ${currentToolId === tool.id ? 'bg-accent-primary text-white border-accent-primary' : 'bg-secondary border-subtle hover:border-strong text-secondary'}`}>{tool.label[lang]}</button>
               ))}
@@ -531,12 +531,6 @@ export const Shell: React.FC<ShellProps> = ({ initialLang, initialToolId }) => {
           </div>
         </div>
       )}
-
-      <footer className="p-6 border-t border-subtle bg-secondary/50">
-        <a href="https://manpuc.me" target="_blank" rel="noopener noreferrer" className="text-tertiary text-xs hover:text-accent-primary transition-all inline-block hover:scale-105 active:scale-95 no-underline">
-          Made with ❤️ by <span className="font-bold">manpuc</span>
-        </a>
-      </footer>
     </div>
   );
 };

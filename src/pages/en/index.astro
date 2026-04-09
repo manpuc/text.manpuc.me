@@ -1,13 +1,35 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import { Shell } from "../../components/Shell";
+import Footer from "../../components/Footer.astro";
+import { getLangFromUrl } from "../../i18n/utils";
 
-const lang = "en";
-const title = "TextFlow - Free Online Text Conversion Tools";
-const description =
-	"Professional text conversion tools for developers and creators. Case conversion, Japanese kana, coding formats, Base64, and more. Free, secure, and browser-based.";
+const lang = getLangFromUrl(Astro.url);
+const title = "TextFlow - High-quality Text Conversion Tools";
+const description = "Professional text conversion tools for developers and creators. Case conversion, Japanese kana, coding formats, and more. Free, secure, and browser-based.";
 ---
 
 <Layout title={title} description={description} lang={lang}>
-	<Shell initialLang={lang} client:load />
+  <div class="sr-only">
+    <h1>{title}</h1>
+    <p>{description}</p>
+  </div>
+
+  <Shell initialLang={lang} client:load />
+
+  <Footer lang={lang} showLinks={true} />
 </Layout>
+
+<style>
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+</style>

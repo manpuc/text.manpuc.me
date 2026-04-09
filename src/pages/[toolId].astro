@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { Shell } from "../components/Shell";
+import Footer from "../components/Footer.astro";
 import { tools } from "../data/tools";
 
 export function getStaticPaths() {
@@ -18,49 +19,115 @@ const toolName = tool.label[lang];
 const title = `${toolName} 変換｜無料オンラインツール - TextFlow`;
 const description = `${toolName}に一括変換できる無料のオンラインツールです。${tool.desc[lang]}。登録不要、ブラウザ完結で安全・高速に利用可能です。`;
 
-// Related tools (same category, excluding current)
-const relatedTools = tools
-  .filter((t) => t.category === tool.category && t.id !== toolId)
-  .slice(0, 6);
+// Get related tools from the same category
+const relatedTools = tools.filter(t => t.category === tool.category && t.id !== toolId).slice(0, 4);
 ---
 
 <Layout title={title} description={description} lang={lang}>
-  {/* Additional Structured Data for Breadcrumbs */}
-  <script type="application/ld+json" is:inline set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "ホーム",
-        "item": Astro.site
-      },
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": toolName,
-        "item": Astro.url.href
-      }
-    ]
-  })} />
+  {/* Structured Data: Combining Breadcrumb and FAQ */}
+  <script type="application/ld+json" is:inline set:html={JSON.stringify([
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "ホーム",
+          "item": Astro.site
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": toolName,
+          "item": Astro.url.href
+        }
+      ]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": `${toolName}ツールは無料で使えますか？`,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "はい、TextFlowのすべてのツールは完全無料でご利用いただけます。登録やダウンロードの必要もありません。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "入力したテキストデータは安全ですか？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "はい、安全です。変換処理はすべてお使いのブラウザ内（ローカル）で行われ、入力内容がサーバーに送信されることはありません。"
+          }
+        }
+      ]
+    }
+  ])} />
+
+  {/* Hidden H1 for SEO keyword indexing */}
+  <header class="sr-only">
+    <h1>{toolName} 変換ツール</h1>
+    <p>{description}</p>
+  </header>
 
   <Shell initialLang={lang} initialToolId={toolId as any} client:visible />
 
-  {relatedTools.length > 0 && (
-    <footer class="max-w-6xl mx-auto px-4 py-12 border-t border-gray-200 dark:border-gray-800">
-      <h2 class="text-xl font-bold mb-6 opacity-80">関連ツール</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {relatedTools.map((t) => (
-          <a
-            href={`/${t.id}`}
-            class="p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 hover:bg-white dark:hover:bg-gray-800 hover:shadow-lg transition-all duration-200 group"
-          >
-            <div class="font-bold group-hover:text-blue-500 transition-colors">{t.label[lang]}</div>
-            <div class="text-xs opacity-60 mt-1 line-clamp-1">{t.desc[lang]}</div>
-          </a>
-        ))}
-      </div>
-    </footer>
-  )}
+  <Footer lang={lang} showLinks={true}>
+    <div class="grid md:grid-cols-2 gap-12 text-left">
+      <section>
+        <h2 class="text-xl font-bold mb-4">{toolName}ツールの特徴</h2>
+        <p class="text-tertiary leading-relaxed mb-6">
+          TextFlowの{toolName}ツールは、{tool.desc[lang]}。
+          エンジニアのコーディング作業から、ライターの文章作成、事務作業の効率化まで幅広く活用いただけます。
+          インストール不要で、どのデバイスからでもブラウザからアクセスするだけで即座に利用可能です。
+        </p>
+
+        <h3 class="font-bold mb-3 text-sm uppercase tracking-wider text-accent-primary">選ばれる理由</h3>
+        <ul class="space-y-3 text-sm text-tertiary">
+          <li class="flex items-start gap-2">
+            <span class="text-accent-primary font-bold">✓</span>
+            <span><strong>プライバシー第一:</strong> データはブラウザ内で処理され、外部に漏洩しません。</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="text-accent-primary font-bold">✓</span>
+            <span><strong>一瞬で完了:</strong> リアルタイム変換により、入力と同時に結果を確認できます。</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="text-accent-primary font-bold">✓</span>
+            <span><strong>スマートアシスト:</strong> AIが入力内容を解析し、最適なツールを提案します。</span>
+          </li>
+        </ul>
+      </section>
+
+      <nav aria-label="Related tools">
+        <h2 class="text-xl font-bold mb-4">関連ツール</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {relatedTools.map(t => (
+            <a href={`/${t.id}`} class="group p-4 bg-secondary/50 rounded-2xl border border-subtle hover:border-accent-primary hover:bg-accent-subtle/30 transition-all no-underline">
+              <span class="font-bold block text-primary group-hover:text-accent-primary transition-colors">{t.label[lang]}</span>
+              <span class="text-[10px] text-tertiary line-clamp-2 mt-1">{t.desc[lang]}</span>
+            </a>
+          ))}
+        </div>
+      </nav>
+    </div>
+  </Footer>
 </Layout>
+
+<style>
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+</style>

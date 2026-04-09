@@ -5,19 +5,21 @@ interface Props {
 	title: string;
 	description?: string;
 	lang: "en" | "ja";
+	noindex?: boolean;
 }
 
-const { title, description, lang = "ja" } = Astro.props;
+const { title, description, lang = "ja", noindex = false } = Astro.props;
 ---
 
 <!doctype html>
 <html lang={lang} data-theme="light">
 	<head>
 		<meta charset="UTF-8" />
+		{noindex && <meta name="robots" content="noindex,nofollow" />}
 		<meta
 			name="description"
 			content={description ||
-				"TextFlow - High-quality text conversion tools for developers and users."}
+				"TextFlow - 開発者やクリエイターのための高品質テキスト変換・加工ツール集。ブラウザ完結で安全・高速に利用可能。"}
 		/>
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
